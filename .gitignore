@@ -1,0 +1,16 @@
+# Node
+node_modules/
+dist/
+.next/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.vscode/
+*.log
+
+# Environment
+.env
+
+# Docker
+docker-compose.override.yml
