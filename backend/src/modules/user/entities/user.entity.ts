@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { TranslatorLanguage } from "./translatorLanguage.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 export enum Role {
     CUSTOMER = 'customer',
@@ -13,6 +14,8 @@ export class User {
     id: number;
     @Column()
     name: string;
+    @Column()
+    password: string;
     @Column({ unique: true })
     email: string;
     @Column({type: 'enum',
@@ -20,4 +23,11 @@ export class User {
             default: Role.CUSTOMER
             })
     role: Role;
+
+    @OneToMany(() => TranslatorLanguage, (language) => language.translator, {cascade: true})
+    languages: TranslatorLanguage[];
+
+    constructor(user: Partial<User>) {
+        Object.assign(this, user);
+    }
 }
