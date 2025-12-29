@@ -1,33 +1,31 @@
-import { TranslatorLanguage } from "./translatorLanguage.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { TranslatorLanguage } from './translator-language.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum Role {
-    CUSTOMER = 'customer',
-    TRANSLATOR = 'translator',
-    ADMINISTRATOR = 'administrator',
-
+  CUSTOMER = 'customer',
+  TRANSLATOR = 'translator',
+  ADMINISTRATOR = 'administrator',
 }
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
-    @Column()
-    name: string;
-    @Column()
-    password: string;
-    @Column({ unique: true })
-    email: string;
-    @Column({type: 'enum',
-            enum: Role,
-            default: Role.CUSTOMER
-            })
-    role: Role;
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column()
+  name: string;
+  @Column()
+  password: string;
+  @Column({ unique: true })
+  email: string;
+  @Column({ type: 'enum', enum: Role, default: Role.CUSTOMER })
+  role: Role;
 
-    @OneToMany(() => TranslatorLanguage, (language) => language.translator, {cascade: true})
-    languages: TranslatorLanguage[];
+  @OneToMany(() => TranslatorLanguage, (language) => language.translator, {
+    cascade: true,
+  })
+  languages: TranslatorLanguage[];
 
-    constructor(user: Partial<User>) {
-        Object.assign(this, user);
-    }
+  constructor(user: Partial<User>) {
+    Object.assign(this, user);
+  }
 }

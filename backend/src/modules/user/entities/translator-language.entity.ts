@@ -1,7 +1,7 @@
 import { User } from "./user.entity";
 import { JoinColumn, ManyToOne, Entity, PrimaryColumn } from "typeorm";
 
-export enum language {
+export enum Language {
     ENGLISH = 'en',
     SPANISH = 'es',
     FRENCH = 'fr',
@@ -46,7 +46,7 @@ export class TranslatorLanguage {
     translator: User;
 
     @PrimaryColumn()
-    languageCode: language;
+    languageCode: Language;
 
     constructor(translatorLanguage: Partial<TranslatorLanguage>) {
         Object.assign(this, translatorLanguage);
