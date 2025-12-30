@@ -1,21 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { LoginDto } from './dto/login.dto';
 import { EntityManager } from 'typeorm';
 import { User, Role } from './entities/user.entity';
 import {
   Language,
   TranslatorLanguage,
 } from './entities/translator-language.entity';
-import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly entityManager: EntityManager,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly entityManager: EntityManager) {}
 
   async create(createUserDto: CreateUserDto) {
     const user = this.entityManager.create(User, createUserDto);
@@ -34,31 +29,31 @@ export class UserService {
     // }
   }
 
-  async signup(createUserDto: CreateUserDto) {
-    const user = await this.create(createUserDto);
-    const token = this.authService.signToken(user);
-    return {
-      user: {
-        id: user.name,
-        role: user.role,
-      },
-      accessToken: token,
-    };
-  }
+  async findOrCreateGoogleUser(profile: any) {
+    const { id, emails, displayName } = profile;
+    const email = emails[0].value;
 
-  async login(loginDto: LoginDto) {
-    const user = await this.findByEmail(loginDto.email);
-    if (!user || user.password !== loginDto.password) {
-      throw new UnauthorizedException('Invalid credentials');
+    let user = await this.entityManager.findOne(User, {
+      where: [{ googleId: id }, { email }],
+    });
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = id;
+        await this.entityManager.save(User, user);
+      }
+      return user;
     }
-    const token = this.authService.signToken(user);
-    return {
-      user: {
-        id: user.name,
-        role: user.role,
-      },
-      accessToken: token,
-    };
+
+    user = this.entityManager.create(User, {
+      googleId: id,
+      email,
+      name: displayName,
+      role: Role.CUSTOMER,
+      password: null,
+    });
+
+    return this.entityManager.save(User, user);
   }
 
   async findByRole(role?: Role) {
@@ -94,7 +89,7 @@ export class UserService {
       .createQueryBuilder(User, 'user')
       .innerJoinAndSelect('user.languages', 'language')
       .where('user.role = :role', { role: Role.TRANSLATOR })
-      .andWhere('language.languageCode = :languageCode', { languageCode })
+      .andWhere('language.languageCode = :languageCode', { languageCode });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

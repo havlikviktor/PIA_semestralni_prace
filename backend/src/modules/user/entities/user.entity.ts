@@ -13,10 +13,12 @@ export class User {
   id: number;
   @Column()
   name: string;
-  @Column()
-  password: string;
+  @Column({ type: 'varchar', nullable: true })
+  password: string | null;
   @Column({ unique: true })
   email: string;
+  @Column({ type: 'varchar', nullable: true })
+  googleId: string | null;
   @Column({ type: 'enum', enum: Role, default: Role.CUSTOMER })
   role: Role;
 

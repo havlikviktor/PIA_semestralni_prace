@@ -1,7 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { UserModule } from '../user/user.module';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -16,8 +19,10 @@ import { AuthService } from './auth.service';
       }),
       inject: [ConfigService],
     }),
+    forwardRef(() => UserModule),
   ],
-  providers: [AuthService],
+  controllers: [AuthController],
+  providers: [AuthService, GoogleStrategy],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
