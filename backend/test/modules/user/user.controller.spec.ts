@@ -10,6 +10,8 @@ describe('UserController', () => {
 
   const mockUserService = {
     create: jest.fn(),
+    signup: jest.fn(),
+    login: jest.fn(),
     findByRole: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
@@ -43,10 +45,14 @@ describe('UserController', () => {
         email: 'john@example.com',
         role: Role.CUSTOMER,
       };
-      mockUserService.create.mockResolvedValue(createUserDto);
+      const expectedResult = {
+        user: { id: 'John', role: Role.CUSTOMER },
+        accessToken: 'token',
+      };
+      mockUserService.signup.mockResolvedValue(expectedResult);
 
-      expect(await controller.create(createUserDto)).toBe(createUserDto);
-      expect(service.create).toHaveBeenCalledWith(createUserDto);
+      expect(await controller.create(createUserDto)).toBe(expectedResult);
+      expect(service.signup).toHaveBeenCalledWith(createUserDto);
     });
   });
 

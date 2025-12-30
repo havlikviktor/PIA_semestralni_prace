@@ -23,7 +23,6 @@ import { of } from 'rxjs';
 describe('ProjectController', () => {
   let controller: ProjectController;
   let projectService: ProjectService;
-  let userService: UserService;
   let interceptor: FileValidationInterceptor;
 
   const mockProjectService = {
@@ -32,10 +31,6 @@ describe('ProjectController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
-  };
-
-  const mockUserService = {
-    findTranslator: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -48,16 +43,11 @@ describe('ProjectController', () => {
           provide: ProjectService,
           useValue: mockProjectService,
         },
-        {
-          provide: UserService,
-          useValue: mockUserService,
-        },
       ],
     }).compile();
 
     controller = module.get<ProjectController>(ProjectController);
     projectService = module.get<ProjectService>(ProjectService);
-    userService = module.get<UserService>(UserService);
     interceptor = module.get<FileValidationInterceptor>(
       FileValidationInterceptor,
     );
@@ -76,23 +66,16 @@ describe('ProjectController', () => {
     const file = { buffer: Buffer.from('test') } as Express.Multer.File;
 
     it('should create a project successfully', async () => {
-      const mockTranslator = {
-        id: 2,
-        role: Role.TRANSLATOR,
-        languages: [{ languageCode: Language.ENGLISH }],
-      };
       const mockProject = {
         ProjectId: 1,
         ...createProjectDto,
         state: ProjectState.CREATED,
       };
 
-      mockUserService.findTranslator.mockResolvedValue(mockTranslator);
       mockProjectService.create.mockResolvedValue(mockProject);
 
       const result = await controller.create(file, createProjectDto);
 
-      expect(userService.findTranslator).toHaveBeenCalledWith(2);
       expect(projectService.create).toHaveBeenCalledWith(
         createProjectDto,
         file,
@@ -105,7 +88,7 @@ describe('ProjectController', () => {
     });
 
     it('should throw BadRequestException if translator not found', async () => {
-      mockUserService.findTranslator.mockResolvedValue(null);
+      mockProjectService.create.mockRejectedValue(new BadRequestException());
 
       await expect(controller.create(file, createProjectDto)).rejects.toThrow(
         BadRequestException,
@@ -113,12 +96,7 @@ describe('ProjectController', () => {
     });
 
     it('should throw BadRequestException if translator lacks competence', async () => {
-      const mockTranslator = {
-        id: 2,
-        role: Role.TRANSLATOR,
-        languages: [{ languageCode: Language.FRENCH }], // Different language
-      };
-      mockUserService.findTranslator.mockResolvedValue(mockTranslator);
+      mockProjectService.create.mockRejectedValue(new BadRequestException());
 
       await expect(controller.create(file, createProjectDto)).rejects.toThrow(
         BadRequestException,
@@ -126,15 +104,7 @@ describe('ProjectController', () => {
     });
 
     it('should throw BadRequestException on ForeignKeyViolation', async () => {
-      const mockTranslator = {
-        id: 2,
-        role: Role.TRANSLATOR,
-        languages: [{ languageCode: Language.ENGLISH }],
-      };
-      mockUserService.findTranslator.mockResolvedValue(mockTranslator);
-
-      const error = { code: PostgresErrorCode.ForeignKeyViolation };
-      mockProjectService.create.mockRejectedValue(error);
+      mockProjectService.create.mockRejectedValue(new BadRequestException());
 
       await expect(controller.create(file, createProjectDto)).rejects.toThrow(
         BadRequestException,
@@ -187,8 +157,10 @@ describe('ProjectController', () => {
     it('should return an array of projects', async () => {
       const result = [{ ProjectId: 1 }];
       mockProjectService.findAll.mockResolvedValue(result);
+      const req = { user: { sub: 1, role: Role.CUSTOMER } };
 
-      expect(await controller.findAll()).toBe(result);
+      expect(await controller.findAll(req)).toBe(result);
+      expect(projectService.findAll).toHaveBeenCalledWith(1, Role.CUSTOMER);
     });
   });
 

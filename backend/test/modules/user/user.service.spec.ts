@@ -6,6 +6,7 @@ import { TranslatorLanguage } from '../../../src/modules/user/entities/translato
 import { CreateUserDto } from '../../../src/modules/user/dto/create-user.dto';
 import { UpdateUserDto } from '../../../src/modules/user/dto/update-user.dto';
 import { Language } from '../../../src/modules/user/entities/translator-language.entity';
+import { AuthService } from '../../../src/modules/auth/auth.service';
 
 describe('UserService', () => {
   let service: UserService;
@@ -21,6 +22,10 @@ describe('UserService', () => {
     delete: jest.fn(),
   };
 
+  const mockAuthService = {
+    signToken: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -28,6 +33,10 @@ describe('UserService', () => {
         {
           provide: EntityManager,
           useValue: mockEntityManager,
+        },
+        {
+          provide: AuthService,
+          useValue: mockAuthService,
         },
       ],
     }).compile();
