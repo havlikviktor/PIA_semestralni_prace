@@ -5,9 +5,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   Entity,
+  OneToOne,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Language } from '../../user/entities/translator-language.entity';
+import { ProjectFeedback } from './project-feedback.entity';
 
 export enum ProjectState {
   CREATED = 'created',
@@ -49,6 +51,9 @@ export class Project {
 
   @Column({ default: ProjectState.CREATED })
   state: ProjectState;
+
+  @OneToOne(() => ProjectFeedback, (feedback) => feedback.project)
+  feedback: ProjectFeedback;
 
   @CreateDateColumn()
   createdAt: Date;

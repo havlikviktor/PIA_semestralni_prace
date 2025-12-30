@@ -9,15 +9,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { FileType, Project } from './entities/project.entity';
+import { FileType, Project, ProjectState } from './entities/project.entity';
 import { User, Role } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
+import { ProjectFeedback } from './entities/project-feedback.entity';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @InjectRepository(ProjectFeedback)
+    private feedbackRepository: Repository<ProjectFeedback>,
     private readonly userService: UserService,
   ) {}
 
@@ -106,12 +110,11 @@ export class ProjectService {
 
     return this.projectRepository.find({
       where,
-      relations: ['customer', 'translator'],
+      relations: ['customer', 'translator', 'feedback'],
       select: {
         ProjectId: true,
         languageCode: true,
         state: true,
-        createdAt: true,
         customer: {
           name: true,
           email: true,
@@ -119,33 +122,48 @@ export class ProjectService {
         translator: {
           name: true,
           email: true,
+        },
+        feedback: {
+          text: true,
+          createdAt: true,
         },
       },
     });
   }
 
   findProjectById(ProjectId: number) {
-    return this.projectRepository.findOne({
+    const project = this.projectRepository.findOne({
       where: { ProjectId },
-      relations: ['customer', 'translator'],
+      relations: ['customer', 'translator', 'feedback'],
       select: {
+        ProjectId: true,
         languageCode: true,
         state: true,
-        createdAt: true,
         customer: {
+          id: true,
           name: true,
           email: true,
         },
         translator: {
+          id: true,
           name: true,
           email: true,
         },
+        feedback: {
+          text: true,
+          createdAt: true,
+        },
       },
     });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${ProjectId} not found`);
+    }
+    return project;
   }
 
   async findProjectFiles(projectId: number) {
-    return this.projectRepository.findOne({
+    const project =  await this.projectRepository.findOne({
       where: { ProjectId: projectId },
       relations: ['customer', 'translator'],
       select: {
@@ -161,6 +179,12 @@ export class ProjectService {
         },
       },
     });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    return project;
   }
 
   async getProjectFile(
@@ -170,37 +194,69 @@ export class ProjectService {
     fileType: FileType,
   ) {
     const project = await this.findProjectFiles(projectId);
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
-    }
 
     this.checkProjectAccess(project, userId, role);
     return this.selectCorrectFile(project, fileType);
-    
   }
 
-selectCorrectFile(project: Project, fileType: FileType) {
-  let buffer : Buffer;
+  selectCorrectFile(project: Project, fileType: FileType) {
+    let buffer : Buffer;
 
-  if (fileType === FileType.TRANSLATED) {
-    if (!project.translatedFile) {
-      throw new NotFoundException(`File for project with ID ${project.ProjectId} is not translated yet`);
+    if (fileType === FileType.TRANSLATED) {
+      if (!project.translatedFile) {
+        throw new NotFoundException(
+          `File for project with ID ${project.ProjectId} is not translated yet`,
+        );
+      }
+      buffer = project.translatedFile;
+    } else if (fileType === FileType.ORIGINAL) {
+      buffer = project.originalFile;
+    } else {
+      throw new BadRequestException(`Invalid file type requested: ${fileType}`);
     }
-    buffer = project.translatedFile;
-  } else if (fileType === FileType.ORIGINAL) {
-    buffer = project.originalFile;
-  }
-  else {
-    throw new BadRequestException(`Invalid file type requested: ${fileType}`);
+
+    return {
+      buffer,
+      filename: `${fileType.toString()}_file.${project.fileSuffix}`,
+      mimeType: 'application/octet-stream',
+    };
   }
 
-  return {
-    buffer,
-    filename: `${fileType.toString()}_file.${project.fileSuffix}`,
-    mimeType: 'application/octet-stream',
-  };
-}
+  async addFeedback(
+    projectId: number,
+    createFeedbackDto: CreateFeedbackDto,
+    userId: number,
+  ) {
+    const project = await this.findProjectById(projectId);
+    this.checkProjectFeedbackAccess(project!, userId);
 
+    const feedback = this.feedbackRepository.create({
+      projectId: projectId,
+      text: createFeedbackDto.text,
+    });
+
+    return this.feedbackRepository.save(feedback);
+  }
+
+  checkProjectFeedbackAccess(project: Project, userId: number) {
+     if (project.state !== ProjectState.APPROVED) {
+      throw new BadRequestException(
+        `Feedback can only be added to approved projects`,
+      );
+    }
+
+    if (project.customer.id !== userId) {
+      throw new ForbiddenException(
+        `Only the customer of the project can add feedback`,
+      );
+    }
+
+    if (project.feedback) {
+      throw new BadRequestException(`Feedback for this project already exists`);
+    }
+  }
+
+  
   checkProjectAccess(project: Project, userId: number, role: Role) {
     if (role === Role.ADMINISTRATOR) {
       return;

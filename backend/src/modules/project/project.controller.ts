@@ -23,6 +23,8 @@ import { FileValidationInterceptor } from './interceptors/File-validation.interc
 import { Response } from 'express';
 import { FileType } from './entities/project.entity';
 
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
+
 @Controller('projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
@@ -43,11 +45,7 @@ export class ProjectController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const project = await this.projectService.findProjectById(+id);
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
-    }
-    return project;
+    return await this.projectService.findProjectById(+id);
   }
 
   @Get(':id/file')
@@ -70,6 +68,20 @@ export class ProjectController {
     });
 
     res.send(fileData.buffer);
+  }
+
+  
+  @Post(':id/feedback')
+  async addFeedback(
+    @Param('id') id: string,
+    @Body() createFeedbackDto: CreateFeedbackDto,
+    @Request() req,
+  ) {
+    return this.projectService.addFeedback(
+      +id,
+      createFeedbackDto,
+      req.user.sub,
+    );
   }
 
   @Patch(':id')
