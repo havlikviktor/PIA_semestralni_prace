@@ -8,9 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
-  Req,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -18,66 +16,20 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MultipartValidationPipe } from '../../pipes/multipart-validation.pipe';
 import { FileValidationInterceptor } from './interceptors/File-validation.interceptor';
-import { PostgresErrorCode } from '../database/postgres-error-codes.enum';
-import { UserService } from '../user/user.service';
-import { User } from '../user/entities/user.entity';
 
 @Controller('projects')
 export class ProjectController {
-  constructor(
-    private readonly projectService: ProjectService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly projectService: ProjectService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('originalFile'), FileValidationInterceptor)
   async create(
     @UploadedFile() file: Express.Multer.File,
-    @Body(new MultipartValidationPipe()) createProjectDto: CreateProjectDto) 
-  {
-    await this.checkTranslator(createProjectDto);
-    
-    try {
-      const project = await this.projectService.create(createProjectDto, file);
-      if (project) {
-       const { ProjectId, languageCode, customer, translator, state } = project;
-       return { ProjectId, languageCode, customer, translator, state };
-      } 
-    }
-    catch (error) {
-      if (error?.code === PostgresErrorCode.ForeignKeyViolation) {
-        throw new BadRequestException(
-          'Referenced user (customer or translator) does not exist.',
-        );
-      }
-      throw error;
-    }
-  }
-
-  private async checkTranslator(createProjectDto: CreateProjectDto) {
-    if (!createProjectDto.translatorId) {
-      return
-    }
-
-    const translator = await this.userService.findTranslator(createProjectDto.translatorId);
-    if (!translator) {
-      throw new BadRequestException(
-        `Translator with ID ${createProjectDto.translatorId} not found or is not a translator`,
-      );
-    }
-    this.checkTranslatorCompetence(translator, createProjectDto);
-  }
-
-  private checkTranslatorCompetence(translator: User, createProjectDto: CreateProjectDto) {
-     const hasCompetence = translator.languages.some(
-        (lang) => lang.languageCode === createProjectDto.languageCode,
-      );
-
-      if (!hasCompetence) {
-        throw new BadRequestException(
-          `Translator with ID ${createProjectDto.translatorId} does not have competence for language ${createProjectDto.languageCode}`,
-        );
-      }
+    @Body(new MultipartValidationPipe()) createProjectDto: CreateProjectDto,
+  ) {
+    const project = await this.projectService.create(createProjectDto, file);
+    const { ProjectId, languageCode, customer, translator, state } = project;
+    return { ProjectId, languageCode, customer, translator, state };
   }
 
   @Get()

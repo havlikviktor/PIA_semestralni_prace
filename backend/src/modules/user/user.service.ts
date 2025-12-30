@@ -1,12 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LoginDto } from './dto/login.dto';
 import { EntityManager } from 'typeorm';
 import { User, Role } from './entities/user.entity';
 import { TranslatorLanguage } from './entities/translator-language.entity';
+import { AuthService } from '../auth/auth.service';
+
 @Injectable()
 export class UserService {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(
+    private readonly entityManager: EntityManager,
+    private readonly authService: AuthService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const user = this.entityManager.create(User, createUserDto);
@@ -23,6 +29,33 @@ export class UserService {
     //   await this.entityManager.save(languages);
     //   savedUser.languages = languages;
     // }
+  }
+
+  async signup(createUserDto: CreateUserDto) {
+    const user = await this.create(createUserDto);
+    const token = this.authService.signToken(user);
+    return {
+      user: {
+        id: user.name,
+        role: user.role,
+      },
+      accessToken: token,
+    };
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.findByEmail(loginDto.email);
+    if (!user || user.password !== loginDto.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const token = this.authService.signToken(user);
+    return {
+      user: {
+        id: user.name,
+        role: user.role,
+      },
+      accessToken: token,
+    };
   }
 
   async findByRole(role?: Role) {
