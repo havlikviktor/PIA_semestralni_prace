@@ -17,6 +17,11 @@ export enum ProjectState {
   CLOSED = 'closed',
 }
 
+export enum FileType {
+  ORIGINAL = 'original',
+  TRANSLATED = 'translated',
+}
+
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
@@ -38,6 +43,9 @@ export class Project {
 
   @Column({ type: 'bytea', nullable: true })
   translatedFile?: Buffer;
+
+  @Column()
+  fileSuffix: string;
 
   @Column({ default: ProjectState.CREATED })
   state: ProjectState;

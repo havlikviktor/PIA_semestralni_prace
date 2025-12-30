@@ -160,7 +160,10 @@ describe('ProjectController', () => {
       const req = { user: { sub: 1, role: Role.CUSTOMER } };
 
       expect(await controller.findAll(req)).toBe(result);
-      expect(projectService.findAll).toHaveBeenCalledWith(1, Role.CUSTOMER);
+      expect(projectService.findUserProjects).toHaveBeenCalledWith(
+        1,
+        Role.CUSTOMER,
+      );
     });
   });
 

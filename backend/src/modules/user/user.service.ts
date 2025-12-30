@@ -4,7 +4,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { EntityManager } from 'typeorm';
 import { User, Role } from './entities/user.entity';
-import { TranslatorLanguage } from './entities/translator-language.entity';
+import {
+  Language,
+  TranslatorLanguage,
+} from './entities/translator-language.entity';
 import { AuthService } from '../auth/auth.service';
 
 @Injectable()
@@ -84,6 +87,14 @@ export class UserService {
       where: { id, role: Role.TRANSLATOR },
       relations: ['languages'],
     });
+  }
+
+  async findCapableTranslator(languageCode: Language) {
+    return this.entityManager
+      .createQueryBuilder(User, 'user')
+      .innerJoinAndSelect('user.languages', 'language')
+      .where('user.role = :role', { role: Role.TRANSLATOR })
+      .andWhere('language.languageCode = :languageCode', { languageCode })
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

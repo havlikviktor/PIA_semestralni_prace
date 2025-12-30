@@ -91,7 +91,7 @@ describe('ProjectService', () => {
       const result = [{ ProjectId: 1 }];
       mockProjectRepository.find.mockResolvedValue(result);
 
-      expect(await service.findAll(1, Role.CUSTOMER)).toBe(result);
+      expect(await service.findUserProjects(1, Role.CUSTOMER)).toBe(result);
       expect(repository.find).toHaveBeenCalledWith({
         where: { customer: { id: 1 } },
         relations: ['customer', 'translator'],
@@ -102,7 +102,7 @@ describe('ProjectService', () => {
       const result = [{ ProjectId: 1 }];
       mockProjectRepository.find.mockResolvedValue(result);
 
-      expect(await service.findAll(2, Role.TRANSLATOR)).toBe(result);
+      expect(await service.findUserProjects(2, Role.TRANSLATOR)).toBe(result);
       expect(repository.find).toHaveBeenCalledWith({
         where: { translator: { id: 2 } },
         relations: ['customer', 'translator'],
@@ -115,7 +115,7 @@ describe('ProjectService', () => {
       const result = { ProjectId: 1 };
       mockProjectRepository.findOne.mockResolvedValue(result);
 
-      expect(await service.findOne(1)).toBe(result);
+      expect(await service.findProjectById(1)).toBe(result);
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { ProjectId: 1 },
         relations: ['customer', 'translator'],

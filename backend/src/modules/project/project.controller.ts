@@ -9,6 +9,10 @@ import {
   UseInterceptors,
   UploadedFile,
   NotFoundException,
+  Request,
+  Res,
+  ParseEnumPipe,
+  Query,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -16,6 +20,8 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MultipartValidationPipe } from '../../pipes/multipart-validation.pipe';
 import { FileValidationInterceptor } from './interceptors/File-validation.interceptor';
+import { Response } from 'express';
+import { FileType } from './entities/project.entity';
 
 @Controller('projects')
 export class ProjectController {
@@ -27,23 +33,43 @@ export class ProjectController {
     @UploadedFile() file: Express.Multer.File,
     @Body(new MultipartValidationPipe()) createProjectDto: CreateProjectDto,
   ) {
-    const project = await this.projectService.create(createProjectDto, file);
-    const { ProjectId, languageCode, customer, translator, state } = project;
-    return { ProjectId, languageCode, customer, translator, state };
+    return await this.projectService.create(createProjectDto, file);
   }
 
   @Get()
-  findAll() {
-    return this.projectService.findAll();
+  findAll(@Request() req) {
+    return this.projectService.findUserProjects(req.user.sub, req.user.role);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const project = await this.projectService.findOne(+id);
+    const project = await this.projectService.findProjectById(+id);
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
     return project;
+  }
+
+  @Get(':id/file')
+  async getFile(
+    @Param('id') projectId: number,
+    @Request() req,
+    @Query('type', new ParseEnumPipe(FileType, { optional: true }))
+    type: FileType = FileType.ORIGINAL,
+    @Res() res: Response,
+  ) {
+    const fileData = await this.projectService.getProjectFile(
+      projectId,
+      req.user.sub,
+      req.user.role,
+      type,
+    );
+    res.set({
+      'Content-Type': fileData.mimeType,
+      'Content-Disposition': `attachment; filename="${fileData.filename}"`,
+    });
+
+    res.send(fileData.buffer);
   }
 
   @Patch(':id')
@@ -55,7 +81,7 @@ export class ProjectController {
     if (result.affected === 0) {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
-    return this.projectService.findOne(+id);
+    return this.projectService.findProjectById(+id);
   }
 
   @Delete(':id')
