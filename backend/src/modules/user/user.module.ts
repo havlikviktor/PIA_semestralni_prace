@@ -4,9 +4,13 @@ import { UserController } from './user.controller';
 import { User } from './entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TranslatorLanguage } from './entities/translator-language.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, TranslatorLanguage])],
+  imports: [
+    TypeOrmModule.forFeature([User, TranslatorLanguage]),
+    AuthModule,
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

@@ -10,7 +10,7 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const user = this.entityManager.create(User, createUserDto);
-    await this.entityManager.save(User, user);
+    return this.entityManager.save(User, user);
 
     // if (createUserDto.languages?.length) {
     //   const languages = createUserDto.languages.map(langDto =>
@@ -40,6 +40,10 @@ export class UserService {
 
   findOne(id: number) {
     return this.entityManager.findOneBy(User, { id });
+  }
+
+  findByEmail(email: string) {
+    return this.entityManager.findOneBy(User, { email });
   }
 
   async findTranslator(id: number) {
