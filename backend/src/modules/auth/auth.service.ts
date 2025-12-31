@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
-  private pendingTickets = new Map<string, string>();
+  private pendingTickets = new Map<string, { token: string; user: any }>();
 
   constructor(
     private jwtService: JwtService,
@@ -29,21 +29,28 @@ export class AuthService {
     });
   }
 
-  generateTicket(token: string): string {
+  generateTicket(token: string, user: any): string {
     const ticket = uuidv4();
-    this.pendingTickets.set(ticket, token);
-    // Ticket expires in 2 minutes
+    this.pendingTickets.set(ticket, { token, user });
     setTimeout(() => this.pendingTickets.delete(ticket), 2 * 60 * 1000);
     return ticket;
   }
 
-  exchangeTicket(ticket: string): { accessToken: string } {
-    const token = this.pendingTickets.get(ticket);
-    if (!token) {
+  exchangeTicket(ticket: string): { accessToken: string; user: any } {
+    const data = this.pendingTickets.get(ticket);
+    if (!data) {
       throw new NotFoundException('Invalid or expired ticket');
     }
     this.pendingTickets.delete(ticket);
-    return { accessToken: token };
+    return {
+      accessToken: data.token,
+      user: {
+        id: data.user.id,
+        name: data.user.name,
+        role: data.user.role,
+        newUser: data.user.newUser,
+      },
+    };
   }
 
   async signup(createUserDto: CreateUserDto) {
@@ -51,8 +58,10 @@ export class AuthService {
     const token = this.signToken(user);
     return {
       user: {
-        id: user.name,
+        id: user.id,
+        name: user.name,
         role: user.role,
+        newUser: true,
       },
       accessToken: token,
     };
@@ -60,13 +69,17 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.userService.findByEmail(loginDto.email);
+    if (!user) {
+      throw new UnauthorizedException('User with this email does not exist');
+    }
     if (!user || user.password !== loginDto.password) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials, wtrong password');
     }
     const token = this.signToken(user);
     return {
       user: {
-        id: user.name,
+        id: user.id,
+        name: user.name,
         role: user.role,
       },
       accessToken: token,

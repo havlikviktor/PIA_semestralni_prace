@@ -10,8 +10,9 @@ export class CreateUserDto {
     readonly password: string;
     @IsEmail()
     readonly email: string;
+    @IsOptional()
     @IsEnum(Role)
-    role: Role;
+    role?: Role;
 
     @IsOptional()
     @ArrayNotEmpty()

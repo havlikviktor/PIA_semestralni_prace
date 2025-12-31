@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EntityManager } from 'typeorm';
@@ -13,20 +13,16 @@ export class UserService {
   constructor(private readonly entityManager: EntityManager) {}
 
   async create(createUserDto: CreateUserDto) {
+    const existingUser = await this.entityManager.findOne(User, {
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUser) {
+    throw new ConflictException('User with this Email already exists');
+    }
+
     const user = this.entityManager.create(User, createUserDto);
     return this.entityManager.save(User, user);
-
-    // if (createUserDto.languages?.length) {
-    //   const languages = createUserDto.languages.map(langDto =>
-    //     this.entityManager.create(TranslatorLanguage, {
-    //       languageCode: langDto.languageCode,
-    //       translatorId: savedUser.id,
-    //       translator: savedUser,
-    //     }),
-    //   );
-    //   await this.entityManager.save(languages);
-    //   savedUser.languages = languages;
-    // }
   }
 
   async findOrCreateGoogleUser(profile: any) {
@@ -53,7 +49,11 @@ export class UserService {
       password: null,
     });
 
-    return this.entityManager.save(User, user);
+    const createdUser = await this.entityManager.save(User, user);
+    return {
+    ...createdUser,
+    newUser: true,
+    };
   }
 
   async findByRole(role?: Role) {

@@ -1,0 +1,32 @@
+{
+  "Auth": {
+    "loginTitle": "Login",
+    "signupTitle": "Sign Up",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "roleLabel": "Role",
+    "customerRole": "Customer",
+    "translatorRole": "Translator",
+    "languagesLabel": "Languages",
+    "loginButton": "Log In",
+    "signupButton": "Sign Up",
+    "or": "Or",
+    "continueWithGoogle": "Continue with Google",
+    "noAccount": "Don't have an account? Sign up",
+    "hasAccount": "Already have an account? Log in",
+    "errorGeneric": "Something went wrong",
+    "successLogin": "Login successful, redirecting...",
+    "googleLoginTitle": "Google Login",
+    "processingLogin": "Processing login...",
+    "loading": "Loading..."
+  },
+  "RoleSetup": {
+    "title": "Complete your profile",
+    "submitButton": "Save and Continue"
+  },
+  "Dashboard": {
+    "welcome": "Welcome to the application!",
+    "loggedIn": "You are successfully logged in."
+  }
+}

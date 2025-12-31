@@ -1,0 +1,32 @@
+{
+  "Auth": {
+    "loginTitle": "Přihlášení",
+    "signupTitle": "Registrace",
+    "nameLabel": "Jméno",
+    "emailLabel": "Email",
+    "passwordLabel": "Heslo",
+    "roleLabel": "Role",
+    "customerRole": "Zákazník",
+    "translatorRole": "Překladatel",
+    "languagesLabel": "Jazyky",
+    "loginButton": "Přihlásit se",
+    "signupButton": "Registrovat se",
+    "or": "Nebo",
+    "continueWithGoogle": "Pokračovat s Google",
+    "noAccount": "Nemáte účet? Zaregistrujte se",
+    "hasAccount": "Již máte účet? Přihlaste se",
+    "errorGeneric": "Něco se pokazilo",
+    "successLogin": "Přihlášení úspěšné, přesměrovávám...",
+    "googleLoginTitle": "Google Přihlášení",
+    "processingLogin": "Zpracovávám přihlášení...",
+    "loading": "Načítání..."
+  },
+  "RoleSetup": {
+    "title": "Dokončete svůj profil",
+    "submitButton": "Uložit a pokračovat"
+  },
+  "Dashboard": {
+    "welcome": "Vítejte v aplikaci!",
+    "loggedIn": "Jste úspěšně přihlášen."
+  }
+}

@@ -14,7 +14,6 @@ import { Public } from './public.decorator';
 import { Response } from 'express';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from '../user/dto/login.dto';
-import { EmailExistsInterceptor } from '../user/interceptors/email-exists.interceptor';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
@@ -25,7 +24,6 @@ export class AuthController {
   ) {}
 
   @Public()
-  @UseInterceptors(EmailExistsInterceptor)
   @Post('signup')
   async signup(@Body() createUserDto: CreateUserDto) {
     return this.authService.signup(createUserDto);
@@ -48,10 +46,10 @@ export class AuthController {
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const user = req.user;
     const token = this.authService.signToken(user);
-    const ticket = this.authService.generateTicket(token);
+    const ticket = this.authService.generateTicket(token, user);
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-    res.redirect(`${frontendUrl}/login?ticket=${ticket}`);
+    res.redirect(`${frontendUrl}?ticket=${ticket}`);
   }
 
   @Public()
