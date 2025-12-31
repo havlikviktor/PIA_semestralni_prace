@@ -33,6 +33,25 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
     networks:
       - sem-network
+    
+  frontend:
+    build:
+      context: ./frontend
+    container_name: pia_frontend
+    env_file:
+      - .env
+    command: npm run dev
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+    - "${FRONTEND_PORT}:3000"
+    environment:
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+    networks:
+      - sem-network
 
 volumes:
   db-data:
