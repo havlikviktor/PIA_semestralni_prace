@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="w-full h-full bg-black text-white flex items-center justify-center">
         <p className="text-xl">{t("loading")}</p>
       </div>
     );
@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   if (!user || !userRole) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+      <div className="w-full h-full bg-black text-white flex flex-col items-center justify-center p-4">
         <h1 className="text-2xl font-bold mb-4">{t("errorUserNotFound")}</h1>
         <a
           href="/"
@@ -50,57 +50,55 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <main className="flex flex-col items-center justify-center p-12">
-        <h1 className="text-4xl font-bold mb-4">{t("welcome")}</h1>
-        <p className="text-xl mb-12 text-gray-400">{t("loggedIn")}</p>
+    <div className="w-full bg-black text-white flex flex-col items-center justify-center p-12">
+      <h1 className="text-4xl font-bold mb-4">{t("welcome")}</h1>
+      <p className="text-xl mb-12 text-gray-400">{t("loggedIn")}</p>
 
-        <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl">
-          {(userRole === Role.ADMINISTRATOR ||
-            userRole === Role.CUSTOMER ||
-            userRole === Role.TRANSLATOR) && (
-            <div className="w-full sm:w-64 lg:w-72">
-              <DashboardButton
-                title={t("projects")}
-                href="/projects"
-                imageSrc="/img/projects.png"
-              />
-            </div>
-          )}
+      <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl">
+        {(userRole === Role.ADMINISTRATOR ||
+          userRole === Role.CUSTOMER ||
+          userRole === Role.TRANSLATOR) && (
+          <div className="w-full sm:w-64 lg:w-72">
+            <DashboardButton
+              title={t("projects")}
+              href="/projects"
+              imageSrc="/img/projects.png"
+            />
+          </div>
+        )}
 
-          {(userRole === Role.ADMINISTRATOR || userRole === Role.CUSTOMER) && (
-            <div className="w-full sm:w-64 lg:w-72">
-              <DashboardButton
-                title={t("newProject")}
-                href="/projects/new"
-                imageSrc="/img/newProject1.png"
-              />
-            </div>
-          )}
+        {(userRole === Role.ADMINISTRATOR || userRole === Role.CUSTOMER) && (
+          <div className="w-full sm:w-64 lg:w-72">
+            <DashboardButton
+              title={t("newProject")}
+              href="/projects/new"
+              imageSrc="/img/newProject1.png"
+            />
+          </div>
+        )}
 
-          {userRole === Role.ADMINISTRATOR && (
-            <div className="w-full sm:w-64 lg:w-72">
-              <DashboardButton
-                title={t("manageProjects")}
-                href="/projects/manage"
-                imageSrc="/img/manageProjects1.png"
-              />
-            </div>
-          )}
+        {userRole === Role.ADMINISTRATOR && (
+          <div className="w-full sm:w-64 lg:w-72">
+            <DashboardButton
+              title={t("manageProjects")}
+              href="/projects/manage"
+              imageSrc="/img/manageProjects1.png"
+            />
+          </div>
+        )}
 
-          {(userRole === Role.ADMINISTRATOR ||
-            userRole === Role.CUSTOMER ||
-            userRole === Role.TRANSLATOR) && (
-            <div className="w-full sm:w-64 lg:w-72">
-              <DashboardButton
-                title={t("activeProjects")}
-                href="/projects/active"
-                imageSrc="/img/ongoingProjects.png"
-              />
-            </div>
-          )}
-        </div>
-      </main>
+        {(userRole === Role.ADMINISTRATOR ||
+          userRole === Role.CUSTOMER ||
+          userRole === Role.TRANSLATOR) && (
+          <div className="w-full sm:w-64 lg:w-72">
+            <DashboardButton
+              title={t("activeProjects")}
+              href="/projects/active"
+              imageSrc="/img/ongoingProjects.png"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

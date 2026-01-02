@@ -37,6 +37,35 @@
     "activeProjects": "Active Projects",
     "logout": "Logout"
   },
+  "Projects": {
+    "title": "Projects",
+    "id": "ID",
+    "state": "State",
+    "language": "Language",
+    "createdAt": "Created At",
+    "actions": "Actions",
+    "noProjects": "No projects found",
+    "loading": "Loading projects...",
+    "detail": "Detail"
+  },
+  "CreateProject": {
+    "title": "Create New Project",
+    "selectLanguage": "Select Target Language",
+    "uploadFile": "Upload File to Translate",
+    "submit": "Create Project",
+    "success": "Project created successfully",
+    "error": "Failed to create project",
+    "selectFile": "Select File",
+    "noFileSelected": "No file selected",
+    "loading": "Creating..."
+  },
+  "ProjectStates": {
+    "created": "Created",
+    "assigned": "Assigned",
+    "completed": "Completed",
+    "approved": "Approved",
+    "closed": "Closed"
+  },
   "Roles": {
     "administrator": "Administrator",
     "customer": "Customer",

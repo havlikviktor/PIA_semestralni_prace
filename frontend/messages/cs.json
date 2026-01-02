@@ -37,6 +37,35 @@
     "activeProjects": "Rozdělané projekty",
     "logout": "Odhlásit se"
   },
+  "Projects": {
+    "title": "Projekty",
+    "id": "ID",
+    "state": "Stav",
+    "language": "Jazyk",
+    "createdAt": "Vytvořeno",
+    "actions": "Akce",
+    "noProjects": "Nebyly nalezeny žádné projekty",
+    "loading": "Načítání projektů...",
+    "detail": "Detail"
+  },
+  "CreateProject": {
+    "title": "Vytvořit nový projekt",
+    "selectLanguage": "Vyberte cílový jazyk",
+    "uploadFile": "Nahrajte soubor k překladu",
+    "submit": "Vytvořit projekt",
+    "success": "Projekt byl úspěšně vytvořen",
+    "error": "Nepodařilo se vytvořit projekt",
+    "selectFile": "Vybrat soubor",
+    "noFileSelected": "Nevybrán žádný soubor",
+    "loading": "Vytvářím..."
+  },
+  "ProjectStates": {
+    "created": "Vytvořen",
+    "assigned": "Přiřazen",
+    "completed": "Dokončen",
+    "approved": "Schválen",
+    "closed": "Uzavřen"
+  },
   "Roles": {
     "administrator": "Administrátor",
     "customer": "Zákazník",
