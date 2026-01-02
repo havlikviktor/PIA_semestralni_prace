@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "../globals.css";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
+import Header from "../../components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +41,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          <LanguageSwitcher />
+          <Header />
           {children}
         </NextIntlClientProvider>
       </body>

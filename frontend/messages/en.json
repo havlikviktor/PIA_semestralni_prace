@@ -34,7 +34,8 @@
     "projects": "All Projects",
     "newProject": "New Project",
     "manageProjects": "Manage Projects",
-    "activeProjects": "Active Projects"
+    "activeProjects": "Active Projects",
+    "logout": "Logout"
   },
   "Roles": {
     "administrator": "Administrator",

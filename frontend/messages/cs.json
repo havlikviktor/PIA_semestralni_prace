@@ -34,7 +34,8 @@
     "projects": "Všechny Projekty",
     "newProject": "Nový projekt",
     "manageProjects": "Správa projektů",
-    "activeProjects": "Rozdělané projekty"
+    "activeProjects": "Rozdělané projekty",
+    "logout": "Odhlásit se"
   },
   "Roles": {
     "administrator": "Administrátor",

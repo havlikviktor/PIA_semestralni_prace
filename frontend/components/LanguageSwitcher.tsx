@@ -14,14 +14,14 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div className="absolute top-4 right-4">
+    <div>
       <select
         value={locale}
         onChange={handleChange}
-        className="text-gray-200 py-1 px-3 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="text-gray-200 text-sm py-1 px-3 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-300"
       >
-        <option value="cs" className="text-gray-900">Čeština</option>
-        <option value="en" className="text-gray-900">English</option>
+        <option value="cs" className="text-gray-200 bg-stone-900">Čeština</option>
+        <option value="en" className="text-gray-200 bg-stone-900 bg-stone-900">English</option>
       </select>
     </div>
   );
