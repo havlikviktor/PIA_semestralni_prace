@@ -19,7 +19,10 @@
     "successLogin": "Login successful, redirecting...",
     "googleLoginTitle": "Google Login",
     "processingLogin": "Processing login...",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "invalidTicket": "Invalid ticket",
+    "tokenNotReceived": "Token not received",
+    "loginFailed": "Login failed"
   },
   "RoleSetup": {
     "title": "Complete your profile",
@@ -40,13 +43,16 @@
   "Projects": {
     "title": "Projects",
     "id": "ID",
+    "fileTitle": "Title",
     "state": "State",
     "language": "Language",
     "createdAt": "Created At",
     "actions": "Actions",
     "noProjects": "No projects found",
     "loading": "Loading projects...",
-    "detail": "Detail"
+    "detail": "Details",
+    "failedToLoad": "Failed to load projects",
+    "fetchError": "Failed to fetch projects"
   },
   "CreateProject": {
     "title": "Create New Project",

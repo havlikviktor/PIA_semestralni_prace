@@ -40,6 +40,9 @@ export class Project {
   @Column()
   languageCode: Language;
 
+  @Column()
+  fileName: string;
+
   @Column({ type: 'bytea' })
   originalFile: Buffer;
 

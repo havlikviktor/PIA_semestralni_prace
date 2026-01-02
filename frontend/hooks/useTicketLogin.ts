@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "./useAuth";
+import { useTranslations } from "next-intl";
 
 export const useTicketLogin = () => {
+  const t = useTranslations("Auth");
   const searchParams = useSearchParams();
   const { handleLoginSuccess } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -16,7 +18,7 @@ export const useTicketLogin = () => {
       setIsLoading(false);
       return;
     }
-    
+
     // tam to zde je pro vyvoj kdy se useefekt zavola 2x
     if (ticketProcessed.current) return;
     ticketProcessed.current = true;
@@ -29,24 +31,24 @@ export const useTicketLogin = () => {
           body: JSON.stringify({ ticket }),
         });
 
-        if (!res.ok) throw new Error("Invalid ticket");
+        if (!res.ok) throw new Error(t("invalidTicket"));
 
         const data = await res.json();
         if (data.accessToken) {
           handleLoginSuccess(data);
         } else {
-          throw new Error("Token not received");
+          throw new Error(t("tokenNotReceived"));
         }
       } catch (err: any) {
         console.error(err);
-        setError(err.message || "Login failed");
+        setError(err.message || t("loginFailed"));
       } finally {
         setIsLoading(false);
       }
     };
 
     exchangeTicket();
-  }, [searchParams, handleLoginSuccess]);
+  }, [searchParams, handleLoginSuccess, t]);
 
   return { isLoading, error };
 };

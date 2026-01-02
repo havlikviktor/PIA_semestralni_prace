@@ -44,6 +44,7 @@ export class ProjectService {
     if (file) {
       project.originalFile = file.buffer;
       const originalName = file.originalname;
+      project.fileName = originalName;
       project.fileSuffix = originalName.substring(
         originalName.lastIndexOf('.'),
       );
@@ -115,18 +116,8 @@ export class ProjectService {
         ProjectId: true,
         languageCode: true,
         state: true,
-        customer: {
-          name: true,
-          email: true,
-        },
-        translator: {
-          name: true,
-          email: true,
-        },
-        feedback: {
-          text: true,
-          createdAt: true,
-        },
+        fileName: true,
+        createdAt: true,
       },
     });
   }
@@ -163,7 +154,7 @@ export class ProjectService {
   }
 
   async findProjectFiles(projectId: number) {
-    const project =  await this.projectRepository.findOne({
+    const project = await this.projectRepository.findOne({
       where: { ProjectId: projectId },
       relations: ['customer', 'translator'],
       select: {
@@ -200,7 +191,7 @@ export class ProjectService {
   }
 
   selectCorrectFile(project: Project, fileType: FileType) {
-    let buffer : Buffer;
+    let buffer: Buffer;
 
     if (fileType === FileType.TRANSLATED) {
       if (!project.translatedFile) {
@@ -239,7 +230,7 @@ export class ProjectService {
   }
 
   checkProjectFeedbackAccess(project: Project, userId: number) {
-     if (project.state !== ProjectState.APPROVED) {
+    if (project.state !== ProjectState.APPROVED) {
       throw new BadRequestException(
         `Feedback can only be added to approved projects`,
       );
@@ -256,7 +247,6 @@ export class ProjectService {
     }
   }
 
-  
   checkProjectAccess(project: Project, userId: number, role: Role) {
     if (role === Role.ADMINISTRATOR) {
       return;

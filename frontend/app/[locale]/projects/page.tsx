@@ -35,21 +35,21 @@ export default function Projects() {
         });
 
         if (!res.ok) {
-          throw new Error("Failed to fetch projects");
+          throw new Error(t("fetchError"));
         }
 
         const data = await res.json();
         setProjects(data);
       } catch (err) {
         console.error(err);
-        setError("Failed to load projects");
+        setError(t("failedToLoad"));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProjects();
-  }, [router]);
+  }, [router, t]);
 
   if (isLoading) {
     return (
@@ -70,9 +70,9 @@ export default function Projects() {
           <table className="w-full text-left">
             <thead className="bg-gray-800 text-gray-400 uppercase text-sm">
               <tr>
-                <th className="px-6 py-3">{t("id")}</th>
                 <th className="px-6 py-3">{t("state")}</th>
                 <th className="px-6 py-3">{t("language")}</th>
+                <th className="px-6 py-3">{t("fileTitle")}</th>
                 <th className="px-6 py-3">{t("createdAt")}</th>
                 <th className="px-6 py-3">{t("actions")}</th>
               </tr>

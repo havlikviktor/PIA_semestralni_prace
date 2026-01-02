@@ -19,7 +19,10 @@
     "successLogin": "Přihlášení úspěšné, přesměrovávám...",
     "googleLoginTitle": "Google Přihlášení",
     "processingLogin": "Zpracovávám přihlášení...",
-    "loading": "Načítání..."
+    "loading": "Načítání...",
+    "invalidTicket": "Neplatný tiket",
+    "tokenNotReceived": "Token nebyl přijat",
+    "loginFailed": "Přihlášení selhalo"
   },
   "RoleSetup": {
     "title": "Dokončete svůj profil",
@@ -40,13 +43,16 @@
   "Projects": {
     "title": "Projekty",
     "id": "ID",
+    "fileTitle": "Název",
     "state": "Stav",
     "language": "Jazyk",
     "createdAt": "Vytvořeno",
     "actions": "Akce",
     "noProjects": "Nebyly nalezeny žádné projekty",
     "loading": "Načítání projektů...",
-    "detail": "Detail"
+    "detail": "Podrobnosti",
+    "failedToLoad": "Nepodařilo se načíst projekty",
+    "fetchError": "Chyba při stahování projektů"
   },
   "CreateProject": {
     "title": "Vytvořit nový projekt",
