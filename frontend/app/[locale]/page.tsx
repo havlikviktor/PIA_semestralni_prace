@@ -39,7 +39,6 @@ function AuthContent() {
         throw new Error(data.message || t("errorGeneric"));
       }
 
-      // Uložení tokenu
       if (data.accessToken) {
         handleLoginSuccess(data);
       }

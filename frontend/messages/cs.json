@@ -27,6 +27,18 @@
   },
   "Dashboard": {
     "welcome": "Vítejte v aplikaci!",
-    "loggedIn": "Jste úspěšně přihlášen."
+    "loggedIn": "Jste úspěšně přihlášen.",
+    "loading": "Načítání Stránky...",
+    "errorUserNotFound": "Chyba: Uživatel nenalezen nebo neplatná role",
+    "loginAgain": "Prosím, přihlaste se znovu",
+    "projects": "Všechny Projekty",
+    "newProject": "Nový projekt",
+    "manageProjects": "Správa projektů",
+    "activeProjects": "Rozdělané projekty"
+  },
+  "Roles": {
+    "administrator": "Administrátor",
+    "customer": "Zákazník",
+    "translator": "Překladatel"
   }
 }

@@ -21,11 +21,11 @@ function LoginContent() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="p-8 bg-white rounded shadow-md">
-        <h1 className="text-xl font-bold mb-4">{t("googleLoginTitle")}</h1>
+        <h1 className="text-xl font-bold text-black mb-4">{t("googleLoginTitle")}</h1>
         {error ? (
           <p className="text-red-500">{error}</p>
         ) : (
-          <p>{isLoading ? t("processingLogin") : t("successLogin")}</p>
+          <p className="text-black"> {isLoading ? t("processingLogin") : t("successLogin")}</p>
         )}
       </div>
     </div>

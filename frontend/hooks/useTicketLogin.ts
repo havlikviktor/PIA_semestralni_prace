@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "./useAuth";
 
@@ -7,6 +7,7 @@ export const useTicketLogin = () => {
   const { handleLoginSuccess } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const ticketProcessed = useRef(false);
 
   useEffect(() => {
     const ticket = searchParams.get("ticket");
@@ -15,6 +16,10 @@ export const useTicketLogin = () => {
       setIsLoading(false);
       return;
     }
+    
+    // tam to zde je pro vyvoj kdy se useefekt zavola 2x
+    if (ticketProcessed.current) return;
+    ticketProcessed.current = true;
 
     const exchangeTicket = async () => {
       try {

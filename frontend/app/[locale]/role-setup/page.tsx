@@ -24,7 +24,6 @@ function RoleSetupContent() {
         if (user.id) {
           setUserId(user.id);
         } else {
-          // If no ID, maybe redirect to login or handle error
           setError("User ID not found. Please login again.");
         }
       } catch (e) {
@@ -71,7 +70,6 @@ function RoleSetupContent() {
         throw new Error(data.message || t("errorGeneric"));
       }
 
-      // Update local user data to remove newUser flag (optional but good practice)
       const userStr = localStorage.getItem("user");
       if (userStr) {
         const user = JSON.parse(userStr);
