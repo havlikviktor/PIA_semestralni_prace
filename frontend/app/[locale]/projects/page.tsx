@@ -4,6 +4,9 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter } from "../../../i18n/navigation";
 import StateMapper from "../../../components/StateMapper";
+import { useRequireAuth } from "../../../hooks/useRequireAuth";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import LoginRedirecter from "@/components/LoginRedirecter";
 
 interface Project {
   ProjectId: number;
@@ -15,24 +18,26 @@ interface Project {
 export default function Projects() {
   const t = useTranslations("Projects");
   const router = useRouter();
+  const { token } = useRequireAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        router.push("/");
-        return;
-      }
+    if (!token) return;
 
+    const fetchProjects = async () => {
       try {
         const res = await fetch("http://localhost:3000/projects", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        if (res.status === 401) {
+          router.push("/");
+          return;
+        }
 
         if (!res.ok) {
           throw new Error(t("fetchError"));
@@ -49,14 +54,13 @@ export default function Projects() {
     };
 
     fetchProjects();
-  }, [router, t]);
+  }, [token, router, t]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xl">{t("loading")}</p>
-      </div>
-    );
+    return <LoadingSpinner text={t("loading")} />;
+  }
+  if (!token) {
+    return <LoginRedirecter />;
   }
 
   return (

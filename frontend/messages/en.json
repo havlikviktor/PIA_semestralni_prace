@@ -22,7 +22,8 @@
     "loading": "Loading...",
     "invalidTicket": "Invalid ticket",
     "tokenNotReceived": "Token not received",
-    "loginFailed": "Login failed"
+    "loginFailed": "Login failed",
+    "userIdNotFound": "User ID not found. Please login again."
   },
   "RoleSetup": {
     "title": "Complete your profile",

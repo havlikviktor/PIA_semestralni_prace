@@ -4,12 +4,14 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "../../../i18n/navigation";
 import { Language } from "../../../constants/languages";
 import { useTranslations, useLocale } from "next-intl";
+import { useRequireAuth } from "../../../hooks/useRequireAuth";
 
 function RoleSetupContent() {
   const t = useTranslations("Auth");
   const tSetup = useTranslations("RoleSetup");
   const locale = useLocale();
   const router = useRouter();
+  const { user, token } = useRequireAuth();
 
   const [role, setRole] = useState("customer");
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
@@ -17,22 +19,14 @@ function RoleSetupContent() {
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user.id) {
-          setUserId(user.id);
-        } else {
-          setError("User ID not found. Please login again.");
-        }
-      } catch (e) {
-        setError("Invalid user data.");
+    if (user) {
+      if (user.id) {
+        setUserId(user.id);
+      } else {
+        setError(t("userIdNotFound"));
       }
-    } else {
-      router.push("/");
     }
-  }, [router]);
+  }, [user]);
 
   const handleLanguageChange = (lang: Language) => {
     setSelectedLanguages((prev) =>
@@ -44,7 +38,7 @@ function RoleSetupContent() {
     e.preventDefault();
     setError("");
 
-    if (!userId) return;
+    if (!userId || !token) return;
 
     let body: any = { role };
 
@@ -55,7 +49,6 @@ function RoleSetupContent() {
     }
 
     try {
-      const token = localStorage.getItem("accessToken");
       const res = await fetch(`http://localhost:3000/user/${userId}`, {
         method: "PATCH",
         headers: {
@@ -70,12 +63,9 @@ function RoleSetupContent() {
         throw new Error(data.message || t("errorGeneric"));
       }
 
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        user.role = role;
-        user.newUser = false;
-        localStorage.setItem("user", JSON.stringify(user));
+      if (user) {
+        const updatedUser = { ...user, role, newUser: false };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
 
       router.push("/dashboard");

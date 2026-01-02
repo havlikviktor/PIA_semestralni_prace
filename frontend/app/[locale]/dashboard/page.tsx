@@ -1,52 +1,24 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
 import DashboardButton from "../../../components/DashboardButton";
 import { Role, mapRoleToEnum } from "../../../components/RoleMapper";
+import { useRequireAuth } from "../../../hooks/useRequireAuth";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import LoginRedirecter from "@/components/LoginRedirecter";
 
 export default function Dashboard() {
   const t = useTranslations("Dashboard");
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
-  const [userRole, setUserRole] = useState<Role | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useRequireAuth();
 
-  useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const parsedUser = JSON.parse(userStr);
-        setUser(parsedUser);
-        const mappedRole = mapRoleToEnum(parsedUser.role);
-        setUserRole(mappedRole);
-      } catch (e) {
-        console.error("Failed to parse user data or map role", e);
-        localStorage.removeItem("user");
-      }
-    }
-    setIsLoading(false);
-  }, []);
+  const userRole = user ? mapRoleToEnum(user.role) : null;
 
   if (isLoading) {
-    return (
-      <div className="w-full h-full bg-black text-white flex items-center justify-center">
-        <p className="text-xl">{t("loading")}</p>
-      </div>
-    );
+    return <LoadingSpinner text={t("loading")} />;
   }
 
   if (!user || !userRole) {
-    return (
-      <div className="w-full h-full bg-black text-white flex flex-col items-center justify-center p-4">
-        <h1 className="text-2xl font-bold mb-4">{t("errorUserNotFound")}</h1>
-        <a
-          href="/"
-          className="text-blue-300 hover:text-white underline text-lg"
-        >
-          {t("loginAgain")}
-        </a>
-      </div>
-    );
+    return <LoginRedirecter />;
   }
 
   return (

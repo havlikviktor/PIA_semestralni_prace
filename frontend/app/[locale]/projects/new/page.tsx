@@ -4,10 +4,13 @@ import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { useRouter } from "../../../../i18n/navigation";
 import { Language, LANGUAGE_LABELS } from "../../../../constants/languages";
+import { useRequireAuth } from "../../../../hooks/useRequireAuth";
+import LoginRedirecter from "@/components/LoginRedirecter";
 
 export default function CreateProject() {
   const t = useTranslations("CreateProject");
   const router = useRouter();
+  const { user, token } = useRequireAuth();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     Language.ENGLISH
   );
@@ -26,17 +29,11 @@ export default function CreateProject() {
     setError("");
     setIsLoading(true);
 
-    const userStr = localStorage.getItem("user");
-    const token = localStorage.getItem("accessToken");
-
-    if (!userStr || !token) {
-      router.push("/");
-      return;
+    if (!user || !token) {
+      return <LoginRedirecter />;
     }
 
     try {
-      const user = JSON.parse(userStr);
-
       if (!file) {
         setError(t("noFileSelected"));
         setIsLoading(false);

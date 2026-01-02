@@ -22,7 +22,8 @@
     "loading": "Načítání...",
     "invalidTicket": "Neplatný tiket",
     "tokenNotReceived": "Token nebyl přijat",
-    "loginFailed": "Přihlášení selhalo"
+    "loginFailed": "Přihlášení selhalo",
+    "userIdNotFound": "ID uživatele nenalezeno. Prosím přihlaste se znovu."
   },
   "RoleSetup": {
     "title": "Dokončete svůj profil",
