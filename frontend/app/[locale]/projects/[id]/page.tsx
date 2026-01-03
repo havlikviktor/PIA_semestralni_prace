@@ -8,12 +8,14 @@ import LoginRedirecter from "@/components/LoginRedirecter";
 import { useServerIp } from "@/hooks/useServerIp";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ProjectState } from "@/constants/projectState";
-import { mapStateToEnum } from "@/components/StateMapper";
+import StateMapper, { mapStateToEnum } from "@/components/StateMapper";
 import Alert from "@/components/Alert";
 import { Project } from "@/types/project";
+import { Role } from "@/constants/role";
+import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
 
 export default function ProjectPage() {
-  const { token, isLoading } = useRequireAuth();
+  const { token, isLoading, user } = useRequireAuth();
   const params = useParams();
   const id = params.id;
   const t = useTranslations("ProjectDetails");
@@ -22,6 +24,8 @@ export default function ProjectPage() {
   const [error, setError] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const serverIp = useServerIp();
   const [alert, setAlert] = useState<{
     title: string;
@@ -82,7 +86,7 @@ export default function ProjectPage() {
       const updatedProject = await res.json();
       setProject(updatedProject);
       setAlert({
-        title: t("SendSuccess"),
+        title: t("sendSuccess"),
         text: t("updateSuccess"),
         show: true,
       });
@@ -125,7 +129,7 @@ export default function ProjectPage() {
       setProject({ ...project, feedback: newFeedback });
       setFeedbackText("");
       setAlert({
-        title: t("SendSuccess"),
+        title: t("sendSuccess"),
         text: t("feedbackSuccess"),
         show: true,
       });
@@ -138,6 +142,50 @@ export default function ProjectPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    } else {
+      setSelectedFile(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile || !token || !project) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("translatedFile", selectedFile);
+
+    try {
+      const res = await fetch(
+        `${serverIp}/projects/${project.ProjectId}/file`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      const updatedProject = await res.json();
+      setProject(updatedProject);
+      setAlert({
+        title: t("sendSuccess"),
+        text: t("uploadSuccess"),
+        show: true,
+      });
+      setSelectedFile(null);
+    } catch (err) {
+      console.error(err);
+      setAlert({ title: t("error"), text: t("uploadError"), show: true });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -171,7 +219,13 @@ export default function ProjectPage() {
                 <label className="font-semibold text-gray-600">
                   {t("state")}
                 </label>
-                <p>{project.state}</p>
+                <p
+                  className={`px-2 py-1 rounded-full font-medium w-fit ${ProjectStyleMapper.getStyle(
+                    project.state
+                  )}`}
+                >
+                  <StateMapper state={project.state} />
+                </p>
               </div>
               <div>
                 <label className="font-semibold text-gray-600">
@@ -179,13 +233,32 @@ export default function ProjectPage() {
                 </label>
                 <p>{new Date(project.createdAt).toLocaleDateString()}</p>
               </div>
+              <div>
+                <label className="font-semibold text-gray-600">
+                  {t("translatedFileStatus")}
+                </label>
+                <p
+                  className={
+                    project.hasTranslatedFile
+                      ? "text-green-500"
+                      : "text-gray-700"
+                  }
+                >
+                  {project.hasTranslatedFile ? t("yes") : t("no")}
+                </p>
+              </div>
             </div>
           </div>
 
           <hr className="border-t border-gray-200 my-6" />
 
           <div>
-            <h2 className="text-xl font-semibold mb-2">{t("customer")}</h2>
+            <h2 className="text-xl font-semibold mb-2">
+              {t("customer")}
+              {user?.role === Role.CUSTOMER && (
+                <span className="text-green-500 pl-2">({t("you")})</span>
+              )}
+            </h2>
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
               <div>
                 <label className="font-semibold text-gray-600">
@@ -208,6 +281,9 @@ export default function ProjectPage() {
               <div>
                 <h2 className="text-xl font-semibold mb-2">
                   {t("translator")}
+                  {user?.role === Role.TRANSLATOR && (
+                    <span className="text-green-500 pl-2">({t("you")})</span>
+                  )}
                 </h2>
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                   <div>
@@ -227,25 +303,75 @@ export default function ProjectPage() {
             </>
           )}
 
+          {/* Translator Actions */}
+          {user?.role === Role.TRANSLATOR &&
+            mapStateToEnum(project.state) === ProjectState.ASSIGNED && (
+              <>
+                <hr className="border-t border-gray-200 my-6" />
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold mb-2">
+                    {t("translatorActions")}
+                  </h2>
+
+                  {/* File Upload */}
+                  <div className="bg-gray-50 p-4 rounded">
+                    <label className="block mb-2 font-medium">
+                      {t("uploadTranslation")}
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        onChange={handleFileChange}
+                        className="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100"
+                      />
+                      <button
+                        onClick={handleUpload}
+                        disabled={uploading || !selectedFile}
+                        className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
+                      >
+                        {uploading ? t("uploading") : t("upload")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Complete Project */}
+                  {project.hasTranslatedFile && (
+                    <button
+                      onClick={() => handleUpdateState(ProjectState.COMPLETED)}
+                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full font-semibold"
+                    >
+                      {t("completeProject")}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
           <hr className="border-t border-gray-200 my-6" />
 
           {/* Actions for Completed Projects */}
-          {mapStateToEnum(project.state) === ProjectState.COMPLETED && (
-            <div className="flex gap-4">
-              <button
-                onClick={() => handleUpdateState(ProjectState.APPROVED)}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                {t("accept")}
-              </button>
-              <button
-                onClick={() => handleUpdateState(ProjectState.REJECTED)}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-                {t("reject")}
-              </button>
-            </div>
-          )}
+          {user?.role === Role.CUSTOMER &&
+            mapStateToEnum(project.state) === ProjectState.COMPLETED && (
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleUpdateState(ProjectState.APPROVED)}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  {t("accept")}
+                </button>
+                <button
+                  onClick={() => handleUpdateState(ProjectState.REJECTED)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  {t("reject")}
+                </button>
+              </div>
+            )}
 
           {/* Feedback Section */}
           <div>

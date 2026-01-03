@@ -10,15 +10,8 @@ import LoginRedirecter from "@/components/LoginRedirecter";
 import { useServerIp } from "@/hooks/useServerIp";
 import { ProjectState } from "@/constants/projectState";
 import { FileState } from "@/constants/fileState";
-import Alert from "@/components/Alert";
-
-interface Project {
-  ProjectId: number;
-  state: string;
-  fileName: string;
-  languageCode: string;
-  createdAt: string;
-}
+import { Project } from "@/types/project";
+import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
 
 export default function Projects() {
   const t = useTranslations("Projects");
@@ -149,19 +142,9 @@ export default function Projects() {
                       <td className="px-6 py-4 text-gray-400">{index + 1}</td>
                       <td className="px-6 py-4">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            project.state === "created"
-                              ? "bg-blue-900 text-blue-300"
-                              : project.state === "assigned"
-                              ? "bg-yellow-900 text-yellow-300"
-                              : project.state === "completed"
-                              ? "bg-lime-900 text-lime-300"
-                              : project.state === "approved"
-                              ? "bg-purple-900 text-purple-300"
-                              : project.state === "rejected"
-                              ? "bg-rose-900 text-rose-300"
-                              : "bg-gray-700 text-gray-300"
-                          }`}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${ProjectStyleMapper.getStyle(
+                            project.state
+                          )}`}
                         >
                           <StateMapper state={project.state} />
                         </span>
@@ -200,12 +183,7 @@ export default function Projects() {
                             />
                           </svg>
                         </button>
-                        {[
-                          ProjectState.COMPLETED,
-                          ProjectState.REJECTED,
-                          ProjectState.APPROVED,
-                          ProjectState.CLOSED,
-                        ].includes(mapStateToEnum(project.state)) && (
+                        {project.hasTranslatedFile && (
                           <button
                             onClick={(e) =>
                               handleDownload(

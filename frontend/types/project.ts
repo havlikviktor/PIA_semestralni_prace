@@ -16,4 +16,5 @@ export interface Project {
   customer: UserInfo;
   translator?: UserInfo;
   feedback?: Feedback;
+  hasTranslatedFile: boolean;
 }
