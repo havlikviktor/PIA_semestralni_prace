@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "../i18n/navigation";
+import { UserInfo } from "@/types/user";
 
 export const useRequireAuth = () => {
   const router = useRouter();
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

@@ -21,7 +21,7 @@ export const useTicketLogin = () => {
       return;
     }
 
-    // tam to zde je pro vyvoj kdy se useefekt zavola 2x
+    // mam to zde je pro vyvoj kdy se useefekt zavola 2x
     if (ticketProcessed.current) return;
     ticketProcessed.current = true;
 

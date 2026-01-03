@@ -50,7 +50,7 @@ export default function CreateProject() {
       const formData = new FormData();
       formData.append("originalFile", file);
       formData.append("languageCode", selectedLanguage);
-      formData.append("customerId", user.id);
+      formData.append("customerId", user.id.toString());
 
       const res = await fetch(`${serverIp}/projects`, {
         method: "POST",
