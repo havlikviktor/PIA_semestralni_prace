@@ -38,11 +38,14 @@
     "projects": "All Projects",
     "newProject": "New Project",
     "manageProjects": "Manage Projects",
-    "activeProjects": "Active Projects",
+    "projectsToApproval": "Projects for Approval",
+    "projectsToTranslate": "Projects for Translation",
     "logout": "Logout"
   },
   "Projects": {
     "title": "Projects",
+    "activeTitle": "Active Projects",
+    "missingFeedback": "Missing Feedback",
     "number": "#",
     "fileTitle": "Title",
     "state": "State",

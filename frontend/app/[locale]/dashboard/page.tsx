@@ -2,10 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import DashboardButton from "../../../components/DashboardButton";
-import { Role, mapRoleToEnum } from "../../../components/RoleMapper";
+import { mapRoleToEnum } from "../../../components/RoleMapper";
 import { useRequireAuth } from "../../../hooks/useRequireAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import LoginRedirecter from "@/components/LoginRedirecter";
+import { Role } from "@/constants/role";
 
 export default function Dashboard() {
   const t = useTranslations("Dashboard");
@@ -64,7 +65,7 @@ export default function Dashboard() {
           userRole === Role.TRANSLATOR) && (
           <div className="w-full sm:w-64 lg:w-72">
             <DashboardButton
-              title={t("activeProjects")}
+              title={userRole === Role.TRANSLATOR ? t("projectsToTranslate") : t("projectsToApproval")}
               href="/projects/active"
               imageSrc="/img/ongoingProjects.png"
             />

@@ -109,13 +109,16 @@ export class ProjectService {
 
     return this.projectRepository.find({
       where,
-      relations: ['customer', 'translator', 'feedback'],
+      relations: ['feedback'],
       select: {
         ProjectId: true,
         languageCode: true,
         state: true,
         fileName: true,
         createdAt: true,
+        feedback: {
+          createdAt: true,
+        },
       },
     });
   }

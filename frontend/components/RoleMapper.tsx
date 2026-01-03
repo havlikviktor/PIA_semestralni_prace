@@ -1,11 +1,5 @@
+import { Role } from "@/constants/role";
 import { useTranslations } from "next-intl";
-
-// Enum definition matching backend User entity
-export enum Role {
-  CUSTOMER = "customer",
-  TRANSLATOR = "translator",
-  ADMINISTRATOR = "administrator",
-}
 
 export const mapRoleToEnum = (role: string): Role => {
   const normalized = role.toLowerCase();

@@ -38,11 +38,14 @@
     "projects": "Všechny Projekty",
     "newProject": "Nový projekt",
     "manageProjects": "Správa projektů",
-    "activeProjects": "Rozdělané projekty",
+    "projectsToApproval": "Projekty ke schválení",
+    "projectsToTranslate": "Projekty k překladu",
     "logout": "Odhlásit se"
   },
   "Projects": {
     "title": "Projekty",
+    "activeTitle": "Aktivní projekty",
+    "missingFeedback": "Chybí zpětná vazba",
     "number": "#",
     "fileTitle": "Název",
     "state": "Stav",
