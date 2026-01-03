@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
 import { FileType, Project, ProjectState } from './entities/project.entity';
 import { User, Role } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
@@ -130,6 +129,9 @@ export class ProjectService {
         ProjectId: true,
         languageCode: true,
         state: true,
+        createdAt: true,
+        fileName: true,
+        fileSuffix: true,
         customer: {
           id: true,
           name: true,
@@ -213,40 +215,6 @@ export class ProjectService {
     };
   }
 
-  async addFeedback(
-    projectId: number,
-    createFeedbackDto: CreateFeedbackDto,
-    userId: number,
-  ) {
-    const project = await this.findProjectById(projectId);
-    this.checkProjectFeedbackAccess(project!, userId);
-
-    const feedback = this.feedbackRepository.create({
-      projectId: projectId,
-      text: createFeedbackDto.text,
-    });
-
-    return this.feedbackRepository.save(feedback);
-  }
-
-  checkProjectFeedbackAccess(project: Project, userId: number) {
-    if (project.state !== ProjectState.APPROVED) {
-      throw new BadRequestException(
-        `Feedback can only be added to approved projects`,
-      );
-    }
-
-    if (project.customer.id !== userId) {
-      throw new ForbiddenException(
-        `Only the customer of the project can add feedback`,
-      );
-    }
-
-    if (project.feedback) {
-      throw new BadRequestException(`Feedback for this project already exists`);
-    }
-  }
-
   checkProjectAccess(project: Project, userId: number, role: Role) {
     if (role === Role.ADMINISTRATOR) {
       return;
@@ -263,8 +231,13 @@ export class ProjectService {
     }
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return this.projectRepository.update(id, updateProjectDto);
+  async updateState(id: number, state: ProjectState) {
+    const result = await this.projectRepository.update(id, { state });
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Project with ID ${id} not found`);
+    }
+    return result;
   }
 
   remove(id: number) {

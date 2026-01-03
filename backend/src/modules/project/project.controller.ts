@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { UpdateProjectStateDto } from './dto/update-project-state.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MultipartValidationPipe } from '../../pipes/multipart-validation.pipe';
 import { FileValidationInterceptor } from './interceptors/File-validation.interceptor';
@@ -24,10 +24,14 @@ import { Response } from 'express';
 import { FileType } from './entities/project.entity';
 
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { FeedbackService } from './feedback.service';
 
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly feedbackService: FeedbackService,
+  ) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('originalFile'), FileValidationInterceptor)
@@ -70,14 +74,13 @@ export class ProjectController {
     res.send(fileData.buffer);
   }
 
-  
   @Post(':id/feedback')
   async addFeedback(
     @Param('id') id: string,
     @Body() createFeedbackDto: CreateFeedbackDto,
     @Request() req,
   ) {
-    return this.projectService.addFeedback(
+    return this.feedbackService.addFeedback(
       +id,
       createFeedbackDto,
       req.user.sub,
@@ -85,15 +88,14 @@ export class ProjectController {
   }
 
   @Patch(':id')
-  async update(
+  async updateState(
     @Param('id') id: string,
-    @Body() updateProjectDto: UpdateProjectDto,
+    @Body() updateProjectStateDto: UpdateProjectStateDto,
   ) {
-    const result = await this.projectService.update(+id, updateProjectDto);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
-    }
-    return this.projectService.findProjectById(+id);
+    return await this.projectService.updateState(
+      +id,
+      updateProjectStateDto.state,
+    );
   }
 
   @Delete(':id')
