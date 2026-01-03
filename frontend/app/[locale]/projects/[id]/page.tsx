@@ -115,7 +115,7 @@ export default function ProjectPage() {
 
       if (!res.ok) {
         setAlert({
-          title: t("SendSuccess"),
+          title: t("error"),
           text: t("feedbackError") + ` (${res.status})`,
           show: true,
         });
@@ -133,7 +133,7 @@ export default function ProjectPage() {
       console.error(err);
       setAlert({
         title: t("error"),
-        text: t("feedbackError"),
+        text: t("fetchError"),
         show: true,
       });
     } finally {

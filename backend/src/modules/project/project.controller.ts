@@ -82,8 +82,9 @@ export class ProjectController {
   ) {
     return this.feedbackService.addFeedback(
       +id,
-      createFeedbackDto,
+      createFeedbackDto.text,
       req.user.sub,
+      req.user.role,
     );
   }
 

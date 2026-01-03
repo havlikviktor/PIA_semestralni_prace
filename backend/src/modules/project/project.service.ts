@@ -234,35 +234,51 @@ export class ProjectService {
     }
   }
 
-  checkProjectFeedbackEditAccess(project: Project, userId: number, role: Role) {
+  checkProjectStateEditAccess(project: Project, userId: number, role: Role, newState: ProjectState) {
     if (role === Role.ADMINISTRATOR) {
       return;
     }
-    this.checkProjectAccess(project, userId, role);
 
-    if (role === Role.CUSTOMER) {
-      if (project.state !== ProjectState.COMPLETED) {
+    this.checkProjectAccess(project, userId, role);
+    if (role === Role.TRANSLATOR ) {
+      this.checkTranslatorStateEdit(project.state, newState);
+    }
+    else if (role === Role.CUSTOMER) {
+      this.checkCustomerStateEdit(project.state, newState);
+    }
+  }
+
+  async checkTranslatorStateEdit(state: ProjectState, newState: ProjectState) {
+    if (state !== ProjectState.ASSIGNED) {
         throw new BadRequestException(
-          `Project state must be COMPLETED to create feedback`,
+          `Project state must be in state ASSIGNED to update`,
         );
       }
-    }
-    else {
-      throw new ForbiddenException(
-        `Only administrators and customers can update project feedback`,
-      );
-    }
-  };
+      else if (newState !== ProjectState.COMPLETED) {
+        throw new BadRequestException(
+          `Translator can only update project state to COMPLETED`,
+        );
+      }
+  }
 
-  async updateState(projectId: number, userId: number, userRole: Role, state: ProjectState) {
+  async checkCustomerStateEdit(state: ProjectState, newState: ProjectState) {
+    if (state !== ProjectState.COMPLETED) {
+        throw new BadRequestException(
+          `Project state must be in state COMPLETED to update`,
+        );
+      }
+      else if (newState !== ProjectState.REJECTED && newState !== ProjectState.APPROVED) {
+        throw new BadRequestException(
+          `Customer can only update project state to REJECTED or APPROVED`,
+        );
+      }
+  }
+   
+  async updateState(projectId: number, userId: number, userRole: Role, newState: ProjectState) {
     const project = await this.findProjectById(projectId);
-    this.checkProjectFeedbackEditAccess(project!, userId, userRole);
+    this.checkProjectStateEditAccess(project!, userId, userRole, newState);
 
-    const result = await this.projectRepository.update(projectId, { state });
-
-    if (result.affected === 0) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
-    }
+    await this.projectRepository.update(projectId, { state: newState });
 
     return this.findProjectById(projectId);
   }
