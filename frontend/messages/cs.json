@@ -52,8 +52,12 @@
     "noProjects": "Nebyly nalezeny žádné projekty",
     "loading": "Načítání projektů...",
     "detail": "Podrobnosti",
+    "downloadError": "Chyba při stahování souboru",
+    "downloadOriginal": "Stáhnout originál",
+    "downloadTranslated": "Stáhnout překlad",
     "failedToLoad": "Nepodařilo se načíst projekty",
-    "fetchError": "Chyba při stahování projektů"
+    "fetchError": "Chyba při stahování projektů",
+    "error": "Chyba"
   },
   "CreateProject": {
     "title": "Vytvořit nový projekt",
@@ -71,6 +75,7 @@
     "assigned": "Přiřazen",
     "completed": "Dokončen",
     "approved": "Schválen",
+    "rejected": "Odmítnut",
     "closed": "Uzavřen"
   },
   "Roles": {
@@ -80,6 +85,7 @@
   },
   "ProjectDetails": {
     "title": "Detail projektu",
+    "file": "Soubor",
     "id": "ID:",
     "fileName": "Název souboru:",
     "language": "Jazyk:",
@@ -99,6 +105,8 @@
     "reject": "Odmítnout",
     "submitFeedback": "Odeslat zpětnou vazbu",
     "feedbackPlaceholder": "Napište svou zpětnou vazbu zde...",
+    "sendSuccess": "Úspěšně odesláno",
+    "error": "Chyba",
     "feedbackSuccess": "Zpětná vazba byla úspěšně odeslána",
     "feedbackError": "Nepodařilo se odeslat zpětnou vazbu",
     "updateSuccess": "Stav projektu byl aktualizován",
