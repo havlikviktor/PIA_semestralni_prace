@@ -12,6 +12,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@theme {
+  --breakpoint-xs: 30rem;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #000000;
