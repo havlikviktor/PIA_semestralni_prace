@@ -12,7 +12,6 @@ import { FileType, Project, ProjectState } from './entities/project.entity';
 import { User, Role } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
 import { ProjectFeedback } from './entities/project-feedback.entity';
-import { CreateFeedbackDto } from './dto/create-feedback.dto';
 
 @Injectable()
 export class ProjectService {
@@ -164,6 +163,7 @@ export class ProjectService {
         originalFile: true,
         translatedFile: true,
         fileSuffix: true,
+        fileName: true,
         customer: {
           id: true,
         },
@@ -210,7 +210,10 @@ export class ProjectService {
 
     return {
       buffer,
-      filename: `${fileType.toString()}_file.${project.fileSuffix}`,
+      filename:
+        fileType === FileType.TRANSLATED
+          ? `translated_${project.fileName}`
+          : project.fileName,
       mimeType: 'application/octet-stream',
     };
   }
@@ -231,13 +234,37 @@ export class ProjectService {
     }
   }
 
-  async updateState(id: number, state: ProjectState) {
-    const result = await this.projectRepository.update(id, { state });
+  checkProjectFeedbackEditAccess(project: Project, userId: number, role: Role) {
+    if (role === Role.ADMINISTRATOR) {
+      return;
+    }
+    this.checkProjectAccess(project, userId, role);
+
+    if (role === Role.CUSTOMER) {
+      if (project.state !== ProjectState.COMPLETED) {
+        throw new BadRequestException(
+          `Project state must be COMPLETED to create feedback`,
+        );
+      }
+    }
+    else {
+      throw new ForbiddenException(
+        `Only administrators and customers can update project feedback`,
+      );
+    }
+  };
+
+  async updateState(projectId: number, userId: number, userRole: Role, state: ProjectState) {
+    const project = await this.findProjectById(projectId);
+    this.checkProjectFeedbackEditAccess(project!, userId, userRole);
+
+    const result = await this.projectRepository.update(projectId, { state });
 
     if (result.affected === 0) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
-    return result;
+
+    return this.findProjectById(projectId);
   }
 
   remove(id: number) {

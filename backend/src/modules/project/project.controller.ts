@@ -91,9 +91,12 @@ export class ProjectController {
   async updateState(
     @Param('id') id: string,
     @Body() updateProjectStateDto: UpdateProjectStateDto,
+    @Request() req,
   ) {
-    return await this.projectService.updateState(
+    return this.projectService.updateState(
       +id,
+      req.user.sub,
+      req.user.role,
       updateProjectStateDto.state,
     );
   }

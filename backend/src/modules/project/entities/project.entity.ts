@@ -16,6 +16,7 @@ export enum ProjectState {
   ASSIGNED = 'assigned',
   COMPLETED = 'completed',
   APPROVED = 'approved',
+  REJECTED = 'rejected',
   CLOSED = 'closed',
 }
 
