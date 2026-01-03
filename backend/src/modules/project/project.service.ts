@@ -99,6 +99,60 @@ export class ProjectService {
     }
   }
 
+  async uploadTranslatedFile(
+    projectId: number,
+    userId: number,
+    role: Role,
+    file: Express.Multer.File,
+  ) {
+    const project = await this.findProjectById(projectId);
+    this.checkProjectAccess(project!, userId, role);
+
+    if (role !== Role.TRANSLATOR) {
+      throw new ForbiddenException(
+        'Only translators can upload translated files',
+      );
+    }
+
+    if (project!.state !== ProjectState.ASSIGNED) {
+      throw new BadRequestException(
+        'Project must be in ASSIGNED state to upload translated file',
+      );
+    }
+
+    await this.projectRepository.update(projectId, {
+      translatedFile: file.buffer,
+    });
+    return this.findProjectById(projectId);
+  }
+
+  async hasTranslatedFile(projectId: number): Promise<boolean> {
+    const count = await this.projectRepository
+      .createQueryBuilder('project')
+      .where('project.ProjectId = :projectId', { projectId })
+      .andWhere('project.translatedFile IS NOT NULL')
+      .getCount();
+    return count > 0;
+  }
+
+  async mapHasTranslatedFile(projects: Project[]): Promise<Project[]> {
+    const projectIds = projects.map((p) => p.ProjectId);
+
+    const projectsWithFiles = await this.projectRepository
+      .createQueryBuilder('project')
+      .select('project.ProjectId', 'id')
+      .where('project.ProjectId IN (:...ids)', { ids: projectIds })
+      .andWhere('project.translatedFile IS NOT NULL')
+      .getRawMany();
+
+    const projectsWithFilesSet = new Set(projectsWithFiles.map((p) => p.id));
+
+    return projects.map((project) => ({
+      ...project,
+      hasTranslatedFile: projectsWithFilesSet.has(project.ProjectId),
+    }));
+  }
+
   async findUserProjects(userId: number, role: Role) {
     const where: any = {};
     if (role === Role.CUSTOMER) {
@@ -107,7 +161,7 @@ export class ProjectService {
       where.translator = { id: userId };
     }
 
-    return this.projectRepository.find({
+    const projects = await this.projectRepository.find({
       where,
       relations: ['feedback'],
       select: {
@@ -121,10 +175,16 @@ export class ProjectService {
         },
       },
     });
+
+    if (projects.length === 0) {
+      return [];
+    }
+
+    return this.mapHasTranslatedFile(projects);
   }
 
-  findProjectById(ProjectId: number) {
-    const project = this.projectRepository.findOne({
+  async findProjectById(ProjectId: number) {
+    const project = await this.projectRepository.findOne({
       where: { ProjectId },
       relations: ['customer', 'translator', 'feedback'],
       select: {
@@ -154,7 +214,7 @@ export class ProjectService {
     if (!project) {
       throw new NotFoundException(`Project with ID ${ProjectId} not found`);
     }
-    return project;
+    return {...project, hasTranslatedFile: await this.hasTranslatedFile(ProjectId)};
   }
 
   async findProjectFiles(projectId: number) {
@@ -237,52 +297,70 @@ export class ProjectService {
     }
   }
 
-  checkProjectStateEditAccess(project: Project, userId: number, role: Role, newState: ProjectState) {
+  async checkProjectStateEditAccess(
+    project: Project,
+    userId: number,
+    role: Role,
+    newState: ProjectState,
+  ) {
     if (role === Role.ADMINISTRATOR) {
       return;
     }
 
     this.checkProjectAccess(project, userId, role);
-    if (role === Role.TRANSLATOR ) {
+    if (role === Role.TRANSLATOR) {
       this.checkTranslatorStateEdit(project.state, newState);
-    }
-    else if (role === Role.CUSTOMER) {
+    } else if (role === Role.CUSTOMER) {
       this.checkCustomerStateEdit(project.state, newState);
+    }
+    
+    if (newState !== ProjectState.CREATED && newState !== ProjectState.ASSIGNED) {
+      const hasFile = await this.hasTranslatedFile(project.ProjectId);
+      if (!hasFile) {
+        throw new BadRequestException(
+          `Cannot update project into new state ${newState} without translated file`,
+        );
+      }
     }
   }
 
   async checkTranslatorStateEdit(state: ProjectState, newState: ProjectState) {
     if (state !== ProjectState.ASSIGNED) {
-        throw new BadRequestException(
-          `Project state must be in state ASSIGNED to update`,
-        );
-      }
-      else if (newState !== ProjectState.COMPLETED) {
-        throw new BadRequestException(
-          `Translator can only update project state to COMPLETED`,
-        );
-      }
+      throw new BadRequestException(
+        `Project state must be in state ASSIGNED to update`,
+      );
+    } else if (newState !== ProjectState.COMPLETED) {
+      throw new BadRequestException(
+        `Translator can only update project state to COMPLETED`,
+      );
+    }
   }
 
   async checkCustomerStateEdit(state: ProjectState, newState: ProjectState) {
     if (state !== ProjectState.COMPLETED) {
-        throw new BadRequestException(
-          `Project state must be in state COMPLETED to update`,
-        );
-      }
-      else if (newState !== ProjectState.REJECTED && newState !== ProjectState.APPROVED) {
-        throw new BadRequestException(
-          `Customer can only update project state to REJECTED or APPROVED`,
-        );
-      }
+      throw new BadRequestException(
+        `Project state must be in state COMPLETED to update`,
+      );
+    } else if (
+      newState !== ProjectState.REJECTED &&
+      newState !== ProjectState.APPROVED
+    ) {
+      throw new BadRequestException(
+        `Customer can only update project state to REJECTED or APPROVED`,
+      );
+    }
   }
-   
-  async updateState(projectId: number, userId: number, userRole: Role, newState: ProjectState) {
+
+  async updateState(
+    projectId: number,
+    userId: number,
+    userRole: Role,
+    newState: ProjectState,
+  ) {
     const project = await this.findProjectById(projectId);
     this.checkProjectStateEditAccess(project!, userId, userRole, newState);
 
     await this.projectRepository.update(projectId, { state: newState });
-
     return this.findProjectById(projectId);
   }
 

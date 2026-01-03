@@ -49,7 +49,24 @@ export class ProjectController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await this.projectService.findProjectById(+id);
+    const project = await this.projectService.findProjectById(+id);
+    const hasTranslatedFile = await this.projectService.hasTranslatedFile(+id);
+    return { ...project, hasTranslatedFile };
+  }
+
+  @Post(':id/file')
+  @UseInterceptors(FileInterceptor('translatedFile'), FileValidationInterceptor)
+  async uploadTranslatedFile(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req,
+  ) {
+    return this.projectService.uploadTranslatedFile(
+      +id,
+      req.user.sub,
+      req.user.role,
+      file,
+    );
   }
 
   @Get(':id/file')
