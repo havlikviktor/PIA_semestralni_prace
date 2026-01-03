@@ -43,7 +43,7 @@
   },
   "Projects": {
     "title": "Projekty",
-    "id": "ID",
+    "number": "#",
     "fileTitle": "Název",
     "state": "Stav",
     "language": "Jazyk",
@@ -77,5 +77,31 @@
     "administrator": "Administrátor",
     "customer": "Zákazník",
     "translator": "Překladatel"
+  },
+  "ProjectDetails": {
+    "title": "Detail projektu",
+    "id": "ID:",
+    "fileName": "Název souboru:",
+    "language": "Jazyk:",
+    "state": "Stav:",
+    "createdAt": "Vytvořeno:",
+    "loading": "Načítání...",
+    "fetchError": "Nepodařilo se načíst projekt",
+    "loadError": "Chyba při načítání projektu",
+    "notFound": "Projekt nenalezen",
+    "customer": "Zákazník",
+    "translator": "Překladatel",
+    "name": "Jméno",
+    "email": "Email",
+    "feedback": "Zpětná vazba",
+    "noFeedback": "Zatím žádná zpětná vazba",
+    "accept": "Přijmout",
+    "reject": "Odmítnout",
+    "submitFeedback": "Odeslat zpětnou vazbu",
+    "feedbackPlaceholder": "Napište svou zpětnou vazbu zde...",
+    "feedbackSuccess": "Zpětná vazba byla úspěšně odeslána",
+    "feedbackError": "Nepodařilo se odeslat zpětnou vazbu",
+    "updateSuccess": "Stav projektu byl aktualizován",
+    "updateError": "Nepodařilo se aktualizovat stav projektu"
   }
 }

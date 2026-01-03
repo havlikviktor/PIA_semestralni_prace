@@ -43,7 +43,7 @@
   },
   "Projects": {
     "title": "Projects",
-    "id": "ID",
+    "number": "#",
     "fileTitle": "Title",
     "state": "State",
     "language": "Language",
@@ -77,5 +77,31 @@
     "administrator": "Administrator",
     "customer": "Customer",
     "translator": "Translator"
+  },
+  "ProjectDetails": {
+    "title": "Project Details",
+    "id": "ID:",
+    "fileName": "File Name:",
+    "language": "Language:",
+    "state": "State:",
+    "createdAt": "Created At:",
+    "loading": "Loading...",
+    "fetchError": "Failed to fetch project",
+    "loadError": "Error loading project",
+    "notFound": "Project not found",
+    "customer": "Customer",
+    "translator": "Translator",
+    "name": "Name",
+    "email": "Email",
+    "feedback": "Feedback",
+    "noFeedback": "No feedback yet",
+    "accept": "Accept",
+    "reject": "Reject",
+    "submitFeedback": "Submit Feedback",
+    "feedbackPlaceholder": "Write your feedback here...",
+    "feedbackSuccess": "Feedback submitted successfully",
+    "feedbackError": "Failed to submit feedback",
+    "updateSuccess": "Project state updated",
+    "updateError": "Failed to update project state"
   }
 }

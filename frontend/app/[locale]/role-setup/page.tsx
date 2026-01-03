@@ -5,6 +5,7 @@ import { useRouter } from "../../../i18n/navigation";
 import { Language } from "../../../constants/languages";
 import { useTranslations, useLocale } from "next-intl";
 import { useRequireAuth } from "../../../hooks/useRequireAuth";
+import { useServerIp } from "@/hooks/useServerIp";
 
 function RoleSetupContent() {
   const t = useTranslations("Auth");
@@ -17,6 +18,7 @@ function RoleSetupContent() {
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
+  const serverIp = useServerIp();
 
   useEffect(() => {
     if (user) {
@@ -49,7 +51,7 @@ function RoleSetupContent() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/user/${userId}`, {
+      const res = await fetch(`${serverIp}/user/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

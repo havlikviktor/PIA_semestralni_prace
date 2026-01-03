@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nodemon --watch src --ext ts --exec \"ts-node -r tsconfig-paths/register src/main.ts\" --legacy-watch",
+    "start:dev": "nodemon --watch src --ext ts --exec \"ts-node -r tsconfig-paths/register src/main.ts\" --legacy-watch -H 0.0.0.0",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

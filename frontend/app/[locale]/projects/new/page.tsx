@@ -6,17 +6,24 @@ import { useRouter } from "../../../../i18n/navigation";
 import { Language, LANGUAGE_LABELS } from "../../../../constants/languages";
 import { useRequireAuth } from "../../../../hooks/useRequireAuth";
 import LoginRedirecter from "@/components/LoginRedirecter";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { useServerIp } from "@/hooks/useServerIp";
 
 export default function CreateProject() {
   const t = useTranslations("CreateProject");
   const router = useRouter();
-  const { user, token } = useRequireAuth();
+  const { user, token, isLoading } = useRequireAuth();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     Language.ENGLISH
   );
   const [file, setFile] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const serverIp = useServerIp();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -27,7 +34,7 @@ export default function CreateProject() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     if (!user || !token) {
       return <LoginRedirecter />;
@@ -36,7 +43,7 @@ export default function CreateProject() {
     try {
       if (!file) {
         setError(t("noFileSelected"));
-        setIsLoading(false);
+        setIsSubmitting(false);
         return;
       }
 
@@ -45,7 +52,7 @@ export default function CreateProject() {
       formData.append("languageCode", selectedLanguage);
       formData.append("customerId", user.id);
 
-      const res = await fetch("http://localhost:3000/projects", {
+      const res = await fetch(`${serverIp}/projects`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -63,7 +70,7 @@ export default function CreateProject() {
       console.error(err);
       setError(err.message || t("error"));
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -123,14 +130,14 @@ export default function CreateProject() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting}
             className={`w-full py-3 px-4 rounded-md font-medium text-white transition-colors ${
-              isLoading
+              isSubmitting
                 ? "bg-gray-700 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {isLoading ? t("loading") : t("submit")}
+            {isSubmitting ? t("loading") : t("submit")}
           </button>
         </form>
       </div>
