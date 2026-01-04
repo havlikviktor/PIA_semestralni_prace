@@ -43,7 +43,17 @@ export const useAuth = () => {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(text || "Fetch error");
+    let errorObj: any = { message: "Fetch error" };
+
+    try {
+      if (text) {
+        errorObj = JSON.parse(text);
+      }
+    } catch (e) {
+      errorObj = { message: text };
+    }
+
+    throw errorObj;
     }
   }, []);
 
@@ -85,7 +95,8 @@ export const useAuth = () => {
 
         return await parseResponse(res, responseType);
       } catch (e: any) {
-        if (e.message === "Unauthorized") throw e;
+        if (e.message === "Unauthorized")
+          return;
 
         console.error("Auth fetch error:", e);
         throw e;
