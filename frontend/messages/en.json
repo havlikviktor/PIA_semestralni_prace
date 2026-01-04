@@ -135,6 +135,15 @@
     "closeProject": "Close Project",
     "moreOptions": "More Options",
     "changeState": "Change State",
-    "none": "None"
+    "none": "None",
+    "adminEmailPanel": "Send Email",
+    "selectRecipient": "Please select at least one recipient",
+    "fillAllFields": "Please fill all fields",
+    "emailSent": "Email sent successfully",
+    "emailError": "Failed to send email",
+    "sending": "Sending...",
+    "sendEmail": "Send Email",
+    "subject": "Subject",
+    "message": "Message"
   }
 }

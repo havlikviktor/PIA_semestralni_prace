@@ -28,13 +28,14 @@ services:
       - db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
+      MAIL_HOST: mailhog
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
     networks:
       - sem-network
-    
+
   frontend:
     build:
       context: ./frontend
@@ -47,11 +48,20 @@ services:
       - /usr/src/app/node_modules
       - ./.env:/usr/src/app/.env
     ports:
-    - "${FRONTEND_PORT}:3000"
+      - "${FRONTEND_PORT}:3000"
     environment:
       - WATCHPACK_POLLING=true
     depends_on:
       - backend
+    networks:
+      - sem-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: pia_mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
     networks:
       - sem-network
 

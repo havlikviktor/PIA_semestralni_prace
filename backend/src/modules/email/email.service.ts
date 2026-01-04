@@ -1,0 +1,45 @@
+import { Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
+
+@Injectable()
+export class EmailService {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: process.env.MAIL_HOST || 'localhost',
+      port: parseInt(process.env.MAIL_PORT || '1025'),
+      ignoreTLS: true,
+    });
+  }
+
+  async sendProjectAssignedEmail(to: string, projectName: string) {
+    await this.transporter.sendMail({
+      from: '"PIA Translation System" <noreply@pia.com>',
+      to,
+      subject: 'New Project Assigned',
+      text: `You have been assigned to a new project: ${projectName}. Please log in to the system to view details.`,
+      html: `<p>You have been assigned to a new project: <strong>${projectName}</strong>.</p><p>Please log in to the system to view details.</p>`,
+    });
+  }
+
+  async sendProjectCompletedEmail(to: string, projectName: string) {
+    await this.transporter.sendMail({
+      from: '"PIA Translation System" <noreply@pia.com>',
+      to,
+      subject: 'Project Completed',
+      text: `Your project ${projectName} has been completed by the translator. Please log in to review and download the translated file.`,
+      html: `<p>Your project <strong>${projectName}</strong> has been completed by the translator.</p><p>Please log in to review and download the translated file.</p>`,
+    });
+  }
+
+  async sendEmail(to: string | string[], subject: string, text: string) {
+    await this.transporter.sendMail({
+      from: '"PIA Translation System" <noreply@pia.com>',
+      to,
+      subject,
+      text,
+      html: `<p>${text.replace(/\n/g, '<br>')}</p>`,
+    });
+  }
+}

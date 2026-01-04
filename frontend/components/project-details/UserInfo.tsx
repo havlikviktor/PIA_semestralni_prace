@@ -1,14 +1,17 @@
 import { useTranslations } from "next-intl";
 import type { UserInfo } from "@/types/user";
 import InfoField from "./InfoField";
+import { Role } from "@/constants/role";
+import { mapRoleToEnum } from "@/utils/RoleMapper";
 
 interface UserInfoProps {
   titleKey: string;
   user: UserInfo;
   isCurrentUser: boolean;
+  isAdmin: boolean;
 }
 
-export default function UserInfo({ titleKey, user, isCurrentUser }: UserInfoProps) {
+export default function UserInfo({ titleKey, user, isCurrentUser, isAdmin }: UserInfoProps) {
   const t = useTranslations("ProjectDetails");
 
   return (
@@ -21,7 +24,7 @@ export default function UserInfo({ titleKey, user, isCurrentUser }: UserInfoProp
       </h2>
       <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
         <InfoField label={t("name")} value={user.name} />
-        <InfoField label={t("email")} value={user.email} />
+        {(isCurrentUser || isAdmin) && (<InfoField label={t("email")} value={user.email} />)}
       </div>
     </div>
   );

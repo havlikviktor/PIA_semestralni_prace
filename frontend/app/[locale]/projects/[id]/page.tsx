@@ -23,6 +23,7 @@ import FeedbackSection from "@/components/project-details/FeedbackSection";
 import AdminActions from "@/components/project-details/AdminActions";
 import ProjectInfo from "@/components/project-details/ProjectInfo";
 import UserInfo from "@/components/project-details/UserInfo";
+import AdminEmailPanel from "@/components/project-details/AdminEmailPanel";
 
 export default function ProjectPage() {
   const { token, isLoading, user } = useRequireAuth();
@@ -202,18 +203,13 @@ export default function ProjectPage() {
         <div className="bg-white shadow rounded-lg p-6 space-y-6">
           <ProjectInfo project={project} onDownload={handleDownload} />
 
-          <AdminActions
-            userRole={userRole}
-            projectState={mapStateToEnum(project.state)}
-            onUpdateState={handleUpdateState}
-          />
-
           <hr className="border-t border-gray-200 my-6" />
 
           <UserInfo
             titleKey="customer"
             user={project.customer}
             isCurrentUser={user?.role === Role.CUSTOMER}
+            isAdmin={user?.role === Role.ADMINISTRATOR}
           />
 
           {project.translator && (
@@ -223,6 +219,7 @@ export default function ProjectPage() {
                 titleKey="translator"
                 user={project.translator}
                 isCurrentUser={user?.role === Role.TRANSLATOR}
+                isAdmin={user?.role === Role.ADMINISTRATOR}
               />
             </>
           )}
@@ -233,6 +230,14 @@ export default function ProjectPage() {
             onUpdateState={handleUpdateState}
             onUpload={handleUpload}
           />
+
+          <AdminActions
+            userRole={userRole}
+            projectState={mapStateToEnum(project.state)}
+            onUpdateState={handleUpdateState}
+          />
+
+          <AdminEmailPanel userRole={userRole} project={project} />
 
           <hr className="border-t border-gray-200 my-6" />
 

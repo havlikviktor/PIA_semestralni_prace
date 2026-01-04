@@ -5,6 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
 import { ProjectModule } from './project/project.module';
 import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
 import { JwtAuthGuard } from './auth/auth.guard';
 
 @Module({
@@ -14,6 +15,7 @@ import { JwtAuthGuard } from './auth/auth.guard';
     UserModule,
     ProjectModule,
     AuthModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [

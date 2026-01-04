@@ -135,6 +135,15 @@
     "closeProject": "Uzavřít projekt",
     "moreOptions": "Další možnosti",
     "changeState": "Změnit stav",
-    "none": "Žádná"
+    "none": "Žádná",
+    "adminEmailPanel": "Odeslat email",
+    "selectRecipient": "Vyberte alespoň jednoho příjemce",
+    "fillAllFields": "Vyplňte všechna pole",
+    "emailSent": "Email byl úspěšně odeslán",
+    "emailError": "Nepodařilo se odeslat email",
+    "sending": "Odesílám...",
+    "sendEmail": "Odeslat email",
+    "subject": "Předmět",
+    "message": "Zpráva"
   }
 }

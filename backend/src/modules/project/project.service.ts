@@ -12,6 +12,7 @@ import { FileType, Project, ProjectState } from './entities/project.entity';
 import { User, Role } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
 import { ProjectFeedback } from './entities/project-feedback.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class ProjectService {
@@ -21,6 +22,7 @@ export class ProjectService {
     @InjectRepository(ProjectFeedback)
     private feedbackRepository: Repository<ProjectFeedback>,
     private readonly userService: UserService,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createProjectDto: CreateProjectDto, file: Express.Multer.File) {
@@ -50,7 +52,21 @@ export class ProjectService {
       );
     }
 
-    return this.mapToResponse(await this.projectRepository.save(project));
+    const savedProject = await this.projectRepository.save(project);
+
+    if (createProjectDto.translatorId) {
+      const translator = await this.userService.findOne(
+        createProjectDto.translatorId,
+      );
+      if (translator && translator.email) {
+        await this.emailService.sendProjectAssignedEmail(
+          translator.email,
+          savedProject.fileName,
+        );
+      }
+    }
+
+    return this.mapToResponse(savedProject);
   }
 
   private mapToResponse(project: Project) {
@@ -369,6 +385,14 @@ export class ProjectService {
     this.checkProjectStateEditAccess(project!, userId, userRole, newState);
 
     await this.projectRepository.update(projectId, { state: newState });
+
+    if (newState === ProjectState.COMPLETED && project?.customer?.email) {
+      await this.emailService.sendProjectCompletedEmail(
+        project.customer.email,
+        project.fileName,
+      );
+    }
+
     return this.findProjectById(projectId);
   }
 
