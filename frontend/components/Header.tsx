@@ -13,6 +13,8 @@ export default function Header() {
   const pathname = usePathname();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
 
+  const isLoginPage = pathname === "/" || /^\/[a-zA-Z]{2}$/.test(pathname);
+
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -39,7 +41,7 @@ export default function Header() {
       <div className="w-full mx-auto px-4 sm:px-6">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            {user && (
+            {user && !isLoginPage && (
               <div className="flex items-center space-x-3">
                 <div className="bg-gray-800 p-2 rounded-full">
                   <svg
@@ -70,7 +72,7 @@ export default function Header() {
           </div>
           <div className="flex items-center space-x-4">
             <LanguageSwitcher />
-            {user && (
+            {user && !isLoginPage && (
               <button
                 onClick={handleLogout}
                 className="text-gray-200 hover:text-white text-sm font-medium"
