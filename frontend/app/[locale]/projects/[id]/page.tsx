@@ -1,11 +1,12 @@
 "use client";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import LoginRedirecter from "@/components/LoginRedirecter";
-import { useServerIp } from "@/hooks/useServerIp";
+import { getServerIp } from "@/utils/getServerIp";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ProjectState } from "@/constants/projectState";
 import StateMapper, { mapStateToEnum } from "@/components/StateMapper";
@@ -13,9 +14,12 @@ import Alert from "@/components/Alert";
 import { Project } from "@/types/project";
 import { Role } from "@/constants/role";
 import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
+import { downloadProjectFile } from "@/utils/fileDownloader";
+import { FileState } from "@/constants/fileState";
 
 export default function ProjectPage() {
   const { token, isLoading, user } = useRequireAuth();
+  const { authFetch, unauthorized } = useAuth();
   const params = useParams();
   const id = params.id;
   const t = useTranslations("ProjectDetails");
@@ -26,7 +30,7 @@ export default function ProjectPage() {
   const [submitting, setSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const serverIp = useServerIp();
+  const serverIp = getServerIp();
   const [alert, setAlert] = useState<{
     title: string;
     text: string;
@@ -37,95 +41,81 @@ export default function ProjectPage() {
     show: false,
   });
 
-  if (!token && !isLoading) return <LoginRedirecter />;
+  if (unauthorized) return <LoginRedirecter />;
+  if ((!token || !user) && !isLoading) return <LoginRedirecter />;
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (!id) return;
 
     const fetchProject = async () => {
       const controller = new AbortController();
       setTimeout(() => controller.abort(), 5000);
       try {
-        const res = await fetch(`${serverIp}/projects/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const data = await authFetch(`${serverIp}/projects/${id}`, {
           signal: controller.signal,
         });
-        if (!res.ok) {
-          throw new Error(t("fetchError"));
-        }
-
-        const data = await res.json();
         setProject(data);
-      } catch (err) {
-        console.error(err);
-        setError(t("loadError"));
+      } catch (err: any) {
+        if (err.message !== "Unauthorized") {
+          console.error(err);
+          setError(t("loadError"));
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProject();
-  }, [token, id, t, serverIp]);
+  }, [id, t, serverIp, authFetch]);
 
   const handleUpdateState = async (newState: string) => {
-    if (!token || !project) return;
+    if (!project) return;
     try {
-      const res = await fetch(`${serverIp}/projects/${project.ProjectId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ state: newState }),
-      });
+      const updatedProject = await authFetch(
+        `${serverIp}/projects/${project.ProjectId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ state: newState }),
+        }
+      );
 
-      if (!res.ok) throw new Error(t("updateError"));
-
-      const updatedProject = await res.json();
       setProject(updatedProject);
       setAlert({
         title: t("sendSuccess"),
         text: t("updateSuccess"),
         show: true,
       });
-    } catch (err) {
-      console.error(err);
-      setAlert({
-        title: t("error"),
-        text: t("updateError"),
-        show: true,
-      });
+    } catch (err: any) {
+      if (err.message !== "Unauthorized") {
+        console.error(err);
+        setAlert({
+          title: t("error"),
+          text: t("updateError"),
+          show: true,
+        });
+      }
     }
   };
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token || !project) return;
+    if (!project) return;
     setSubmitting(true);
     try {
-      const res = await fetch(
+      const newFeedback = await authFetch(
         `${serverIp}/projects/${project.ProjectId}/feedback`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ text: feedbackText }),
         }
       );
 
-      if (!res.ok) {
-        setAlert({
-          title: t("error"),
-          text: t("feedbackError") + ` (${res.status})`,
-          show: true,
-        });
-      }
-
-      const newFeedback = await res.json();
       setProject({ ...project, feedback: newFeedback });
       setFeedbackText("");
       setAlert({
@@ -133,13 +123,15 @@ export default function ProjectPage() {
         text: t("feedbackSuccess"),
         show: true,
       });
-    } catch (err) {
-      console.error(err);
-      setAlert({
-        title: t("error"),
-        text: t("fetchError"),
-        show: true,
-      });
+    } catch (err: any) {
+      if (err.message !== "Unauthorized") {
+        console.error(err);
+        setAlert({
+          title: t("error"),
+          text: t("fetchError"),
+          show: true,
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -154,26 +146,20 @@ export default function ProjectPage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !token || !project) return;
+    if (!selectedFile || !project) return;
     setUploading(true);
     const formData = new FormData();
     formData.append("translatedFile", selectedFile);
 
     try {
-      const res = await fetch(
+      const updatedProject = await authFetch(
         `${serverIp}/projects/${project.ProjectId}/file`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: formData,
         }
       );
 
-      if (!res.ok) throw new Error("Upload failed");
-
-      const updatedProject = await res.json();
       setProject(updatedProject);
       setAlert({
         title: t("sendSuccess"),
@@ -181,11 +167,29 @@ export default function ProjectPage() {
         show: true,
       });
       setSelectedFile(null);
-    } catch (err) {
-      console.error(err);
-      setAlert({ title: t("error"), text: t("uploadError"), show: true });
+    } catch (err: any) {
+      if (err.message !== "Unauthorized") {
+        console.error(err);
+        setAlert({ title: t("error"), text: t("uploadError"), show: true });
+      }
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDownload = async (type: FileState) => {
+    if (!project) return;
+    try {
+      await downloadProjectFile(serverIp, project.ProjectId, type, authFetch);
+    } catch (err: any) {
+      if (err.message !== "Unauthorized") {
+        console.error(err);
+        setAlert({
+          title: t("error"),
+          text: t("downloadError"),
+          show: true,
+        });
+      }
     }
   };
 
@@ -220,7 +224,7 @@ export default function ProjectPage() {
                   {t("state")}
                 </label>
                 <p
-                  className={`px-2 py-1 rounded-full font-medium w-fit ${ProjectStyleMapper.getStyle(
+                  className={`px-3 py-1 rounded-full w-fit ${ProjectStyleMapper.getStyle(
                     project.state
                   )}`}
                 >
@@ -234,13 +238,59 @@ export default function ProjectPage() {
                 <p>{new Date(project.createdAt).toLocaleDateString()}</p>
               </div>
               <div>
+                <div className=" flex flex-col gap-2">
+                  <button
+                    onClick={() => handleDownload(FileState.ORIGINAL)}
+                    className="bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                      />
+                    </svg>
+                    {t("downloadOriginal")}
+                  </button>
+                  {project.hasTranslatedFile && (
+                    <button
+                      onClick={() => handleDownload(FileState.TRANSLATED)}
+                      className={`px-4 py-2 rounded hover:bg-lime-800 text-sm flex items-center gap-2 ${ProjectStyleMapper.getStyle(
+                        ProjectState.COMPLETED
+                      )}`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                        />
+                      </svg>
+                      {t("downloadTranslated")}
+                    </button>
+                  )}
+                </div>
                 <label className="font-semibold text-gray-600">
                   {t("translatedFileStatus")}
                 </label>
                 <p
                   className={
                     project.hasTranslatedFile
-                      ? "text-green-500"
+                      ? "text-green-600"
                       : "text-gray-700"
                   }
                 >
@@ -256,7 +306,13 @@ export default function ProjectPage() {
             <h2 className="text-xl font-semibold mb-2">
               {t("customer")}
               {user?.role === Role.CUSTOMER && (
-                <span className="text-green-500 pl-2">({t("you")})</span>
+                <span
+                  className={`ml-2 px-2 rounded-full text-sm ${ProjectStyleMapper.getStyle(
+                    ProjectState.COMPLETED
+                  )}`}
+                >
+                  ({t("you")})
+                </span>
               )}
             </h2>
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
@@ -332,7 +388,7 @@ export default function ProjectPage() {
                       <button
                         onClick={handleUpload}
                         disabled={uploading || !selectedFile}
-                        className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
+                        className="bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
                       >
                         {uploading ? t("uploading") : t("upload")}
                       </button>
@@ -398,7 +454,7 @@ export default function ProjectPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
+                  className="bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-zinc-300"
                 >
                   {submitting ? t("loading") : t("submitFeedback")}
                 </button>
