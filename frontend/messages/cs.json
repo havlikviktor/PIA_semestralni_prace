@@ -30,6 +30,7 @@
     "submitButton": "Uložit a pokračovat"
   },
   "Dashboard": {
+    "dashboard": "Hlavní stránka",
     "welcome": "Vítejte v aplikaci!",
     "loggedIn": "Jste úspěšně přihlášen.",
     "loading": "Načítání Stránky...",

@@ -2,9 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { Link, useRouter, usePathname } from "../i18n/navigation";
 import { useRoleTranslation } from "../hooks/useRoleTranslation";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { Role } from "../constants/role";
+import { mapRoleToEnum } from "../utils/RoleMapper";
 
 export default function Header() {
   const t = useTranslations("Dashboard");
@@ -13,7 +15,8 @@ export default function Header() {
   const pathname = usePathname();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
 
-  const isLoginPage = pathname === "/" || /^\/[a-zA-Z]{2}$/.test(pathname);
+  const isLoginPage = pathname === "/";
+  const userRole = user ? mapRoleToEnum(user.role) : null;
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -40,7 +43,7 @@ export default function Header() {
     <header className="bg-stone-900 shadow-sm border-b border-gray-800">
       <div className="w-full mx-auto px-4 sm:px-6">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-8">
             {user && !isLoginPage && (
               <div className="flex items-center space-x-3">
                 <div className="bg-gray-800 p-2 rounded-full">
@@ -68,6 +71,56 @@ export default function Header() {
                   </span>
                 </div>
               </div>
+            )}
+
+            {user && !isLoginPage && (
+              <nav className="hidden md:flex items-center space-x-4">
+                <Link
+                  href="/dashboard"
+                  className={`text-sm font-medium ${
+                    pathname === "/dashboard"
+                      ? "text-white underline underline-offset-4"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {t("dashboard")}
+                </Link>
+                <Link
+                  href="/projects"
+                  className={`text-sm font-medium ${
+                    pathname === "/projects"
+                      ? "text-white underline underline-offset-4"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {t("projects")}
+                </Link>
+                {(userRole === Role.ADMINISTRATOR ||
+                  userRole === Role.CUSTOMER) && (
+                  <Link
+                    href="/projects/new"
+                    className={`text-sm font-medium ${
+                      pathname === "/projects/new"
+                        ? "text-white underline underline-offset-4"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    {t("newProject")}
+                  </Link>
+                )}
+                <Link
+                  href="/projects/active"
+                  className={`text-sm font-medium ${
+                    pathname === "/projects/active"
+                      ? "text-white underline underline-offset-4"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {userRole === Role.TRANSLATOR
+                    ? t("projectsToTranslate")
+                    : t("projectsToApproval")}
+                </Link>
+              </nav>
             )}
           </div>
           <div className="flex items-center space-x-4">

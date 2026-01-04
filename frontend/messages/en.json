@@ -30,6 +30,7 @@
     "submitButton": "Save and Continue"
   },
   "Dashboard": {
+    "dashboard": "Dashboard",
     "welcome": "Welcome to the application!",
     "loggedIn": "You are successfully logged in.",
     "loading": "Loading...",
