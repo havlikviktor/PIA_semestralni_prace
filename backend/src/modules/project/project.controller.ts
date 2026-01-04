@@ -83,9 +83,12 @@ export class ProjectController {
       req.user.role,
       type,
     );
+    const encodedFilename = encodeURIComponent(fileData.filename);
+    const asciiFilename = fileData.filename.replace(/[^\x00-\x7F]/g, '_');
+
     res.set({
       'Content-Type': fileData.mimeType,
-      'Content-Disposition': `attachment; filename="${fileData.filename}"`,
+      'Content-Disposition': `attachment; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`,
     });
 
     res.send(fileData.buffer);

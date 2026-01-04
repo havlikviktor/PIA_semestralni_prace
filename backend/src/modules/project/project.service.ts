@@ -41,7 +41,9 @@ export class ProjectService {
     project.languageCode = createProjectDto.languageCode;
     if (file) {
       project.originalFile = file.buffer;
-      const originalName = file.originalname;
+      const originalName = Buffer.from(file.originalname, 'latin1').toString(
+        'utf8',
+      );
       project.fileName = originalName;
       project.fileSuffix = originalName.substring(
         originalName.lastIndexOf('.'),
@@ -214,7 +216,10 @@ export class ProjectService {
     if (!project) {
       throw new NotFoundException(`Project with ID ${ProjectId} not found`);
     }
-    return {...project, hasTranslatedFile: await this.hasTranslatedFile(ProjectId)};
+    return {
+      ...project,
+      hasTranslatedFile: await this.hasTranslatedFile(ProjectId),
+    };
   }
 
   async findProjectFiles(projectId: number) {
@@ -313,8 +318,11 @@ export class ProjectService {
     } else if (role === Role.CUSTOMER) {
       this.checkCustomerStateEdit(project.state, newState);
     }
-    
-    if (newState !== ProjectState.CREATED && newState !== ProjectState.ASSIGNED) {
+
+    if (
+      newState !== ProjectState.CREATED &&
+      newState !== ProjectState.ASSIGNED
+    ) {
       const hasFile = await this.hasTranslatedFile(project.ProjectId);
       if (!hasFile) {
         throw new BadRequestException(

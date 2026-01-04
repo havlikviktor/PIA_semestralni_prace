@@ -22,8 +22,16 @@ export const downloadProjectFile = async (
   const contentDisposition = headers.get("Content-Disposition");
   let filename = `${type}_file`;
   if (contentDisposition) {
-    const match = contentDisposition.match(/filename="?([^"]+)"?/);
-    if (match && match[1]) filename = match[1];
+    const filenameStarMatch = contentDisposition.match(
+      /filename\*=UTF-8''([^;]+)/
+    );
+    const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+
+    if (filenameStarMatch && filenameStarMatch[1]) {
+      filename = decodeURIComponent(filenameStarMatch[1]);
+    } else if (filenameMatch && filenameMatch[1]) {
+      filename = decodeURIComponent(filenameMatch[1]);
+    }
   }
   a.download = filename;
   document.body.appendChild(a);
