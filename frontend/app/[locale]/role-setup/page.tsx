@@ -8,6 +8,7 @@ import { useRequireAuth } from "../../../hooks/useRequireAuth";
 import { useAuth } from "@/hooks/useAuth";
 import LoginRedirecter from "@/components/LoginRedirecter";
 import { getServerIp } from "@/utils/getServerIp";
+import { Role } from "@/constants/role";
 
 function RoleSetupContent() {
   const t = useTranslations("Auth");
@@ -17,7 +18,7 @@ function RoleSetupContent() {
   const { user, token } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
 
-  const [role, setRole] = useState("customer");
+  const [role, setRole] = useState(Role.CUSTOMER);
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
@@ -47,7 +48,7 @@ function RoleSetupContent() {
 
     let body: any = { role };
 
-    if (role === "translator") {
+    if (role === Role.TRANSLATOR) {
       body.languages = selectedLanguages.map((lang) => ({
         languageCode: lang,
       }));
@@ -99,15 +100,15 @@ function RoleSetupContent() {
             </label>
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => setRole(e.target.value as Role)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
             >
-              <option value="customer">{t("customerRole")}</option>
-              <option value="translator">{t("translatorRole")}</option>
+              <option value={Role.CUSTOMER}>{t("customerRole")}</option>
+              <option value={Role.TRANSLATOR}>{t("translatorRole")}</option>
             </select>
           </div>
 
-          {role === "translator" && (
+          {role === Role.TRANSLATOR && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t("languagesLabel")}
