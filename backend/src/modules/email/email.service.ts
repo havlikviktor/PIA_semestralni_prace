@@ -34,12 +34,18 @@ export class EmailService {
   }
 
   async sendEmail(to: string | string[], subject: string, text: string) {
-    await this.transporter.sendMail({
-      from: '"PIA Translation System" <noreply@pia.com>',
-      to,
-      subject,
-      text,
-      html: `<p>${text.replace(/\n/g, '<br>')}</p>`,
-    });
+    const recipients = Array.isArray(to) ? to : [to];
+
+    await Promise.all(
+      recipients.map((recipient) =>
+        this.transporter.sendMail({
+          from: '"PIA Translation System" <noreply@pia.com>',
+          to: recipient,
+          subject,
+          text,
+          html: `<p>${text.replace(/\n/g, '<br>')}</p>`,
+        }),
+      ),
+    );
   }
 }

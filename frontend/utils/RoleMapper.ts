@@ -1,6 +1,9 @@
 import { Role } from "@/constants/role";
 
-export const mapRoleToEnum = (role: string): Role => {
+export const mapRoleToEnum = (
+  role: string | undefined | null
+): Role | undefined => {
+  if (!role) return undefined;
   const normalized = role.toLowerCase();
   switch (normalized) {
     case Role.TRANSLATOR:
@@ -10,6 +13,6 @@ export const mapRoleToEnum = (role: string): Role => {
     case Role.CUSTOMER:
       return Role.CUSTOMER;
     default:
-      throw new Error(`Unknown role: ${role}`);
+      return undefined;
   }
 };
