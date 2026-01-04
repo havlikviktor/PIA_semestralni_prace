@@ -3,11 +3,12 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import RoleMapper from "./RoleMapper";
+import { useRoleTranslation } from "../hooks/useRoleTranslation";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const t = useTranslations("Dashboard");
+  const translateRole = useRoleTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
@@ -61,7 +62,7 @@ export default function Header() {
                     {user.name}
                   </span>
                   <span className="text-xs text-gray-400 capitalize">
-                    <RoleMapper role={user.role} />
+                    {translateRole(user.role)}
                   </span>
                 </div>
               </div>

@@ -9,7 +9,8 @@ import LoginRedirecter from "@/components/LoginRedirecter";
 import { getServerIp } from "@/utils/getServerIp";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ProjectState } from "@/constants/projectState";
-import StateMapper, { mapStateToEnum } from "@/components/StateMapper";
+import { mapStateToEnum } from "@/utils/StateMapper";
+import { useStateTranslation } from "@/hooks/useStateTranslation";
 import Alert from "@/components/Alert";
 import { Project } from "@/types/project";
 import { Role } from "@/constants/role";
@@ -21,6 +22,7 @@ import { get } from "http";
 export default function ProjectPage() {
   const { token, isLoading, user } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
+  const translateState = useStateTranslation();
   const params = useParams();
   const id = params.id;
   const t = useTranslations("ProjectDetails");
@@ -69,7 +71,7 @@ export default function ProjectPage() {
     fetchProject();
   }, [id, t, serverIp, authFetch]);
 
-  const handleUpdateState = async (newState: string) => {
+  const handleUpdateState = async (newState: ProjectState) => {
     if (!project) return;
     try {
       const updatedProject = await authFetch(
@@ -86,7 +88,7 @@ export default function ProjectPage() {
       setProject(updatedProject);
       setAlert({
         title: t("sendSuccess"),
-        text: t("updateSuccess"),
+        text: t("updateSuccess") + `${translateState(newState)}`,
         show: true,
       });
     } catch (err: any) {
@@ -229,7 +231,7 @@ export default function ProjectPage() {
                     project.state
                   )}`}
                 >
-                  <StateMapper state={project.state} />
+                  {translateState(project.state)}
                 </p>
               </div>
               <div>
@@ -411,13 +413,17 @@ export default function ProjectPage() {
               <div className="flex gap-4">
                 <button
                   onClick={() => handleUpdateState(ProjectState.APPROVED)}
-                  className={`px-4 py-2 rounded hover:bg-lime-800 ${ProjectStyleMapper.getStyle(ProjectState.COMPLETED)}`}
+                  className={`px-4 py-2 rounded hover:bg-lime-800 ${ProjectStyleMapper.getStyle(
+                    ProjectState.COMPLETED
+                  )}`}
                 >
                   {t("accept")}
                 </button>
                 <button
                   onClick={() => handleUpdateState(ProjectState.REJECTED)}
-                  className={`text-rose-100 px-4 py-2 rounded hover:bg-rose-800 ${ProjectStyleMapper.getBackgroundStyle(ProjectState.REJECTED)}`}
+                  className={`text-rose-100 px-4 py-2 rounded hover:bg-rose-800 ${ProjectStyleMapper.getBackgroundStyle(
+                    ProjectState.REJECTED
+                  )}`}
                 >
                   {t("reject")}
                 </button>

@@ -116,7 +116,7 @@
     "reject": "Odmítnout",
     "submitFeedback": "Odeslat zpětnou vazbu",
     "feedbackPlaceholder": "Napište svou zpětnou vazbu zde...",
-    "SendSuccess": "Úspěšně odesláno",
+    "sendSuccess": "Úspěšně odesláno",
     "error": "Chyba",
     "translatedFileStatus": "Přeložený soubor:",
     "yes": "Přiložen",

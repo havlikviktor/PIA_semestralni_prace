@@ -3,10 +3,9 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useRouter } from "../../../../i18n/navigation";
-import StateMapper, {
-  mapStateToEnum,
-} from "../../../../components/StateMapper";
-import { mapRoleToEnum } from "../../../../components/RoleMapper";
+import { mapRoleToEnum } from "../../../../utils/RoleMapper";
+import { mapStateToEnum } from "@/utils/StateMapper";
+import { useStateTranslation } from "@/hooks/useStateTranslation";
 import { useRequireAuth } from "../../../../hooks/useRequireAuth";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -21,6 +20,7 @@ import { downloadProjectFile } from "@/utils/fileDownloader";
 
 export default function ActiveProjects() {
   const t = useTranslations("Projects");
+  const translateState = useStateTranslation();
   const { token, user } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
@@ -141,7 +141,7 @@ export default function ActiveProjects() {
                                 projectState
                               )}`}
                             >
-                              <StateMapper state={project.state} />
+                              {translateState(project.state)}
                             </span>
                             {!project.feedback &&
                               (projectState === ProjectState.APPROVED ||

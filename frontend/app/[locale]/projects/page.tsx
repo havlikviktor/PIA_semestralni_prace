@@ -1,9 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "../../../i18n/navigation";
-import StateMapper, { mapStateToEnum } from "../../../components/StateMapper";
+import { useStateTranslation } from "@/hooks/useStateTranslation";
 import { useRequireAuth } from "../../../hooks/useRequireAuth";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -16,7 +16,7 @@ import { downloadProjectFile } from "@/utils/fileDownloader";
 
 export default function Projects() {
   const t = useTranslations("Projects");
-  const { token } = useRequireAuth();
+  const translateState = useStateTranslation();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -113,7 +113,7 @@ export default function Projects() {
                             project.state
                           )}`}
                         >
-                          <StateMapper state={project.state} />
+                          {translateState(project.state)}
                         </span>
                       </td>
                       <td className="px-6 py-4">{project.languageCode}</td>

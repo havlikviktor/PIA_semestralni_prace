@@ -1,5 +1,4 @@
 import { Role } from "@/constants/role";
-import { useTranslations } from "next-intl";
 
 export const mapRoleToEnum = (role: string): Role => {
   const normalized = role.toLowerCase();
@@ -14,14 +13,3 @@ export const mapRoleToEnum = (role: string): Role => {
       throw new Error(`Unknown role: ${role}`);
   }
 };
-
-interface RoleMapperProps {
-  role: string;
-}
-
-export default function RoleMapper({ role }: RoleMapperProps) {
-  const t = useTranslations("Roles");
-  const roleKey = mapRoleToEnum(role);
-
-  return <>{t(roleKey)}</>;
-}

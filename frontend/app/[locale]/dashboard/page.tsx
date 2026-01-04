@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import DashboardButton from "../../../components/DashboardButton";
-import { mapRoleToEnum } from "../../../components/RoleMapper";
+import { mapRoleToEnum } from "../../../utils/RoleMapper";
 import { useRequireAuth } from "../../../hooks/useRequireAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import LoginRedirecter from "@/components/LoginRedirecter";
@@ -65,7 +65,11 @@ export default function Dashboard() {
           userRole === Role.TRANSLATOR) && (
           <div className="w-full sm:w-64 lg:w-72">
             <DashboardButton
-              title={userRole === Role.TRANSLATOR ? t("projectsToTranslate") : t("projectsToApproval")}
+              title={
+                userRole === Role.TRANSLATOR
+                  ? t("projectsToTranslate")
+                  : t("projectsToApproval")
+              }
               href="/projects/active"
               imageSrc="/img/ongoingProjects.png"
             />
