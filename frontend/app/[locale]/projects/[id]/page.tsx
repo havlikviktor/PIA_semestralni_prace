@@ -16,6 +16,7 @@ import { Role } from "@/constants/role";
 import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
 import { downloadProjectFile } from "@/utils/fileDownloader";
 import { FileState } from "@/constants/fileState";
+import { get } from "http";
 
 export default function ProjectPage() {
   const { token, isLoading, user } = useRequireAuth();
@@ -306,13 +307,7 @@ export default function ProjectPage() {
             <h2 className="text-xl font-semibold mb-2">
               {t("customer")}
               {user?.role === Role.CUSTOMER && (
-                <span
-                  className={`ml-2 px-2 rounded-full text-sm ${ProjectStyleMapper.getStyle(
-                    ProjectState.COMPLETED
-                  )}`}
-                >
-                  ({t("you")})
-                </span>
+                <span className="text-green-500 pl-2">({t("you")})</span>
               )}
             </h2>
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
@@ -416,13 +411,13 @@ export default function ProjectPage() {
               <div className="flex gap-4">
                 <button
                   onClick={() => handleUpdateState(ProjectState.APPROVED)}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  className={`px-4 py-2 rounded hover:bg-lime-800 ${ProjectStyleMapper.getStyle(ProjectState.COMPLETED)}`}
                 >
                   {t("accept")}
                 </button>
                 <button
                   onClick={() => handleUpdateState(ProjectState.REJECTED)}
-                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  className={`text-rose-100 px-4 py-2 rounded hover:bg-rose-800 ${ProjectStyleMapper.getBackgroundStyle(ProjectState.REJECTED)}`}
                 >
                   {t("reject")}
                 </button>
