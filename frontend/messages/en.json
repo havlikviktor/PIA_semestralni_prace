@@ -130,6 +130,11 @@
     "updateSuccess": "Project state updated",
     "updateError": "Failed to update project state",
     "downloadOriginal": "Download original file",
-    "downloadTranslated": "Download translation"
+    "downloadTranslated": "Download translation",
+    "adminActions": "Admin Actions",
+    "closeProject": "Close Project",
+    "moreOptions": "More Options",
+    "changeState": "Change State",
+    "none": "None"
   }
 }

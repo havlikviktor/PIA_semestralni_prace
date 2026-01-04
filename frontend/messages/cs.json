@@ -130,6 +130,11 @@
     "updateSuccess": "Stav projektu byl aktualizován",
     "updateError": "Nepodařilo se aktualizovat stav projektu",
     "downloadOriginal": "Stáhnout originální soubor",
-    "downloadTranslated": "Stáhnout překlad"
+    "downloadTranslated": "Stáhnout překlad",
+    "adminActions": "Akce administrátora",
+    "closeProject": "Uzavřít projekt",
+    "moreOptions": "Další možnosti",
+    "changeState": "Změnit stav",
+    "none": "Žádná"
   }
 }

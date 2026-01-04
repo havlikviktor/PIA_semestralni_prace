@@ -9,24 +9,8 @@ interface AlertProps {
   onClose?: () => void;
 }
 
-export default function Alert({
-  title,
-  text,
-  show,
-  onClose,
-}: AlertProps) {
-  const [visible, setVisible] = useState(show);
-
-  useEffect(() => {
-    setVisible(show);
-  }, [show]);
-
-  if (!visible) return null;
-
-  const handleClose = () => {
-    setVisible(false);
-    onClose?.();
-  };
+export default function Alert({ title, text, show, onClose }: AlertProps) {
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -35,7 +19,7 @@ export default function Alert({
         <p className="text-gray-600 mb-6">{text}</p>
         <div className="flex justify-end">
           <button
-            onClick={handleClose}
+            onClick={onClose}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
           >
             OK
