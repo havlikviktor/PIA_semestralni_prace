@@ -33,7 +33,7 @@
     "welcome": "Welcome to the application!",
     "loggedIn": "You are successfully logged in.",
     "loading": "Loading...",
-    "errorUserNotFound": "Error: User not found or invalid role",
+    "authError": "Authentication error. Session expired or invalid credentials.",
     "loginAgain": "Please log in again",
     "projects": "All Projects",
     "newProject": "New Project",

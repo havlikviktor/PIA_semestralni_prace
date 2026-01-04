@@ -33,7 +33,7 @@
     "welcome": "Vítejte v aplikaci!",
     "loggedIn": "Jste úspěšně přihlášen.",
     "loading": "Načítání Stránky...",
-    "errorUserNotFound": "Chyba: Uživatel nenalezen nebo neplatná role",
+    "authError": "Chyba autentizace uživatele. Vypršení platnosti přihlášení nebo neplatné údaje.",
     "loginAgain": "Prosím, přihlaste se znovu",
     "projects": "Všechny Projekty",
     "newProject": "Nový projekt",
