@@ -45,6 +45,9 @@
   },
   "Projects": {
     "title": "Projects",
+    "manageProjects": "Manage Projects",
+    "filterByState": "Filter by State",
+    "all": "All",
     "activeTitle": "Active Projects",
     "missingFeedback": "Missing Feedback",
     "number": "#",
@@ -126,7 +129,7 @@
     "feedbackError": "Failed to submit feedback",
     "updateSuccess": "Project state updated",
     "updateError": "Failed to update project state",
-    "downloadOriginal" : "Download original file",
+    "downloadOriginal": "Download original file",
     "downloadTranslated": "Download translation"
   }
 }
