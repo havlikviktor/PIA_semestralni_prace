@@ -49,6 +49,7 @@ export class AuthService {
         id: data.user.id,
         name: data.user.name,
         role: data.user.role,
+        email: data.user.email,
         newUser: data.user.newUser,
       },
     };
@@ -62,6 +63,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         role: user.role,
+        email: user.email,
         newUser: true,
       },
       accessToken: token,
@@ -81,6 +83,7 @@ export class AuthService {
       user: {
         id: user.id,
         name: user.name,
+        email: user.email,
         role: user.role,
       },
       accessToken: token,
