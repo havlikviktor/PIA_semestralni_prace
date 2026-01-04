@@ -27,11 +27,11 @@ export default function Dashboard() {
       <h1 className="text-4xl font-bold mb-4">{t("welcome")}</h1>
       <p className="text-xl mb-12 text-gray-400">{t("loggedIn")}</p>
 
-      <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl">
+      <div className="flex flex-wrap justify-center gap-4 w-full max-w-5xl">
         {(userRole === Role.ADMINISTRATOR ||
           userRole === Role.CUSTOMER ||
           userRole === Role.TRANSLATOR) && (
-          <div className="w-full sm:w-64 lg:w-72">
+          <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton
               title={t("projects")}
               href="/projects"
@@ -41,7 +41,7 @@ export default function Dashboard() {
         )}
 
         {(userRole === Role.ADMINISTRATOR || userRole === Role.CUSTOMER) && (
-          <div className="w-full sm:w-64 lg:w-72">
+          <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton
               title={t("newProject")}
               href="/projects/new"
@@ -51,7 +51,7 @@ export default function Dashboard() {
         )}
 
         {userRole === Role.ADMINISTRATOR && (
-          <div className="w-full sm:w-64 lg:w-72">
+          <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton
               title={t("manageProjects")}
               href="/projects/manage"
@@ -63,7 +63,7 @@ export default function Dashboard() {
         {(userRole === Role.ADMINISTRATOR ||
           userRole === Role.CUSTOMER ||
           userRole === Role.TRANSLATOR) && (
-          <div className="w-full sm:w-64 lg:w-72">
+          <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton
               title={
                 userRole === Role.TRANSLATOR
