@@ -2,20 +2,18 @@
 
 import { useState, Suspense } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { Language } from "../../constants/languages";
-import { useTranslations, useLocale } from "next-intl";
-import { useServerIp } from "@/hooks/useServerIp";
+import { useTranslations } from "next-intl";
+import { getServerIp } from "@/utils/getServerIp";
 
 function AuthContent() {
   const t = useTranslations("Auth");
-  const locale = useLocale();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const { handleLoginSuccess } = useAuth();
-  const serverIp = useServerIp();
+  const serverIp = getServerIp();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

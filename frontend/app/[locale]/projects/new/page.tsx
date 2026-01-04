@@ -5,21 +5,27 @@ import { useState, useEffect } from "react";
 import { useRouter } from "../../../../i18n/navigation";
 import { Language, LANGUAGE_LABELS } from "../../../../constants/languages";
 import { useRequireAuth } from "../../../../hooks/useRequireAuth";
+import { useAuth } from "@/hooks/useAuth";
 import LoginRedirecter from "@/components/LoginRedirecter";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { useServerIp } from "@/hooks/useServerIp";
+import { getServerIp } from "@/utils/getServerIp";
 
 export default function CreateProject() {
   const t = useTranslations("CreateProject");
   const router = useRouter();
   const { user, token, isLoading } = useRequireAuth();
+  const { authFetch, unauthorized } = useAuth();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     Language.ENGLISH
   );
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const serverIp = useServerIp();
+  const serverIp = getServerIp();
+
+  if (unauthorized) {
+    return <LoginRedirecter />;
+  }
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -52,23 +58,17 @@ export default function CreateProject() {
       formData.append("languageCode", selectedLanguage);
       formData.append("customerId", user.id.toString());
 
-      const res = await fetch(`${serverIp}/projects`, {
+      await authFetch(`${serverIp}/projects`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t("error"));
-      }
-
       router.push("/projects");
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || t("error"));
+      if (err.message !== "Unauthorized") {
+        console.error(err);
+        setError(err.message || t("error"));
+      }
     } finally {
       setIsSubmitting(false);
     }

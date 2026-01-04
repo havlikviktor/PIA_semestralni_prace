@@ -124,6 +124,8 @@
     "feedbackSuccess": "Zpětná vazba byla úspěšně odeslána",
     "feedbackError": "Nepodařilo se odeslat zpětnou vazbu",
     "updateSuccess": "Stav projektu byl aktualizován",
-    "updateError": "Nepodařilo se aktualizovat stav projektu"
+    "updateError": "Nepodařilo se aktualizovat stav projektu",
+    "downloadOriginal" : "Stáhnout originální soubor",
+    "downloadTranslated": "Stáhnout překlad"
   }
 }

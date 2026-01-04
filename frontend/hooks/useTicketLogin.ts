@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "./useAuth";
 import { useTranslations } from "next-intl";
-import { useServerIp } from "./useServerIp";
+import { getServerIp } from "@/utils/getServerIp";
 
 export const useTicketLogin = () => {
   const t = useTranslations("Auth");
@@ -11,7 +11,7 @@ export const useTicketLogin = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const ticketProcessed = useRef(false);
-  const serverIp = useServerIp();
+  const serverIp = getServerIp();
 
   useEffect(() => {
     const ticket = searchParams.get("ticket");

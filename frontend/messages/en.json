@@ -124,6 +124,8 @@
     "feedbackSuccess": "Feedback submitted successfully",
     "feedbackError": "Failed to submit feedback",
     "updateSuccess": "Project state updated",
-    "updateError": "Failed to update project state"
+    "updateError": "Failed to update project state",
+    "downloadOriginal" : "Download original file",
+    "downloadTranslated": "Download translation"
   }
 }

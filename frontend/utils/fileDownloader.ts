@@ -4,26 +4,22 @@ export const downloadProjectFile = async (
   serverIp: string,
   projectId: number,
   type: FileState,
-  token: string
+  authFetch: (
+    url: string,
+    options?: RequestInit,
+    responseType?: "json" | "blob" | "text"
+  ) => Promise<any>
 ): Promise<void> => {
-  const res = await fetch(
+  const { blob, headers } = await authFetch(
     `${serverIp}/projects/${projectId}/file?type=${type}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    {},
+    "blob"
   );
 
-  if (!res.ok) {
-    throw new Error("Download failed");
-  }
-
-  const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  const contentDisposition = res.headers.get("Content-Disposition");
+  const contentDisposition = headers.get("Content-Disposition");
   let filename = `${type}_file`;
   if (contentDisposition) {
     const match = contentDisposition.match(/filename="?([^"]+)"?/);

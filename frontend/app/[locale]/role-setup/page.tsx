@@ -5,7 +5,9 @@ import { useRouter } from "../../../i18n/navigation";
 import { Language } from "../../../constants/languages";
 import { useTranslations, useLocale } from "next-intl";
 import { useRequireAuth } from "../../../hooks/useRequireAuth";
-import { useServerIp } from "@/hooks/useServerIp";
+import { useAuth } from "@/hooks/useAuth";
+import LoginRedirecter from "@/components/LoginRedirecter";
+import { getServerIp } from "@/utils/getServerIp";
 
 function RoleSetupContent() {
   const t = useTranslations("Auth");
@@ -13,12 +15,13 @@ function RoleSetupContent() {
   const locale = useLocale();
   const router = useRouter();
   const { user, token } = useRequireAuth();
+  const { authFetch, unauthorized } = useAuth();
 
   const [role, setRole] = useState("customer");
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
-  const serverIp = useServerIp();
+  const serverIp = getServerIp();
 
   useEffect(() => {
     if (user) {
@@ -51,19 +54,13 @@ function RoleSetupContent() {
     }
 
     try {
-      const res = await fetch(`${serverIp}/user/${userId}`, {
+      await authFetch(`${serverIp}/user/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t("errorGeneric"));
-      }
 
       if (user) {
         const updatedUser = { ...user, role, newUser: false };
@@ -72,9 +69,15 @@ function RoleSetupContent() {
 
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      if (err.message !== "Unauthorized") {
+        setError(err.message);
+      }
     }
   };
+
+  if (unauthorized) {
+    return <LoginRedirecter />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">

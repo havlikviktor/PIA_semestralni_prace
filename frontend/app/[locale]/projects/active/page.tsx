@@ -8,47 +8,31 @@ import StateMapper, {
 } from "../../../../components/StateMapper";
 import { mapRoleToEnum } from "../../../../components/RoleMapper";
 import { useRequireAuth } from "../../../../hooks/useRequireAuth";
+import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import LoginRedirecter from "@/components/LoginRedirecter";
-import { useServerIp } from "@/hooks/useServerIp";
 import { ProjectState } from "@/constants/projectState";
 import { FileState } from "@/constants/fileState";
 import { Role } from "@/constants/role";
 import { Project } from "@/types/project";
+import { getServerIp } from "@/utils/getServerIp";
 import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
+import { downloadProjectFile } from "@/utils/fileDownloader";
 
 export default function ActiveProjects() {
   const t = useTranslations("Projects");
   const { token, user } = useRequireAuth();
+  const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const serverIp = useServerIp();
+  const serverIp = getServerIp();
 
   useEffect(() => {
     const fetchProjects = async () => {
-      if (!token) {
-        return;
-      }
       try {
-        const res = await fetch(`${serverIp}/projects`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.status === 401) {
-          return <LoginRedirecter />;
-        }
-
-        if (!res.ok) {
-          throw new Error(t("fetchError"));
-        }
-
-        const data: Project[] = await res.json();
-
-        // Filter projects based on role
+        const data: Project[] = await authFetch(`${serverIp}/projects`);
         const userRole = user ? mapRoleToEnum(user.role) : null;
 
         const filteredProjects = data.filter((project) => {
@@ -68,9 +52,11 @@ export default function ActiveProjects() {
         });
 
         setProjects(filteredProjects);
-      } catch (err) {
-        console.error(err);
-        setError(t("failedToLoad"));
+      } catch (err: any) {
+        if (err.message !== "Unauthorized") {
+          console.error(err);
+          setError(t("failedToLoad"));
+        }
       } finally {
         setIsLoading(false);
       }
@@ -79,7 +65,11 @@ export default function ActiveProjects() {
     if (user) {
       fetchProjects();
     }
-  }, [token, user, t, serverIp]);
+  }, [user, t, serverIp, authFetch]);
+
+  if (unauthorized) {
+    return <LoginRedirecter />;
+  }
 
   if (isLoading) {
     return <LoadingSpinner text={t("loading")} />;
@@ -91,38 +81,14 @@ export default function ActiveProjects() {
     type: FileState
   ) => {
     e.stopPropagation();
-    if (!token) return;
 
     try {
-      const res = await fetch(
-        `${serverIp}/projects/${projectId}/file?type=${type}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) throw new Error("Download failed");
-
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const contentDisposition = res.headers.get("Content-Disposition");
-      let filename = `${type}_file`;
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) filename = match[1];
+      await downloadProjectFile(serverIp, projectId, type, authFetch);
+    } catch (err: any) {
+      if (err.message !== "Unauthorized") {
+        console.error(err);
+        setError(t("downloadError"));
       }
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error(err);
-      setError(t("downloadError"));
     }
   };
 
