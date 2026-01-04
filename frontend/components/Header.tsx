@@ -116,6 +116,18 @@ export default function Header() {
                       {t("newProject")}
                     </Link>
                   )}
+                  {userRole === Role.ADMINISTRATOR && (
+                    <Link
+                      href="/projects/manage"
+                      className={`text-sm font-medium ${
+                        pathname === "/projects/manage"
+                          ? "text-white underline underline-offset-4"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {t("manageProjects")}
+                    </Link>
+                  )}
                   <Link
                     href="/projects/active"
                     className={`text-sm font-medium ${
@@ -213,6 +225,19 @@ export default function Header() {
                 }`}
               >
                 {t("newProject")}
+              </Link>
+            )}
+            {userRole === Role.ADMINISTRATOR && (
+              <Link
+                href="/projects/manage"
+                onClick={closeMenu}
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  pathname === "/projects/manage"
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                }`}
+              >
+                {t("manageProjects")}
               </Link>
             )}
             <Link
