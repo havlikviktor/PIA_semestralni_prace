@@ -129,13 +129,4 @@ export class ProjectController {
     );
     return this.projectMapper.toDetailDto(domain);
   }
-
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    const result = await this.projectService.remove(+id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
-    }
-    return { deleted: true };
-  }
 }

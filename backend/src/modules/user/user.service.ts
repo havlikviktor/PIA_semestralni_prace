@@ -70,23 +70,6 @@ export class UserService {
     return domainUser;
   }
 
-  async findByRole(role?: Role): Promise<UserDomain[]> {
-    let users: UserEntity[];
-    if (role) {
-      if (role == Role.TRANSLATOR) {
-        users = await this.userRepository.find({
-          where: { role },
-          relations: ['languages'],
-        });
-      } else {
-        users = await this.userRepository.find({ where: { role } });
-      }
-    } else {
-      users = await this.userRepository.find();
-    }
-    return users.map((user) => this.userMapper.toDomain(user));
-  }
-
   async findOne(id: number): Promise<UserDomain | null> {
     const user = await this.userRepository.findOneBy({ id });
     return user ? this.userMapper.toDomain(user) : null;
@@ -94,14 +77,6 @@ export class UserService {
 
   async findByEmail(email: string): Promise<UserDomain | null> {
     const user = await this.userRepository.findOneBy({ email });
-    return user ? this.userMapper.toDomain(user) : null;
-  }
-
-  async findTranslator(id: number): Promise<UserDomain | null> {
-    const user = await this.userRepository.findOne({
-      where: { id, role: Role.TRANSLATOR },
-      relations: ['languages'],
-    });
     return user ? this.userMapper.toDomain(user) : null;
   }
 
@@ -147,9 +122,5 @@ export class UserService {
     }
 
     return this.userMapper.toDto(updatedUser);
-  }
-
-  remove(id: number) {
-    return this.userRepository.delete(id);
   }
 }

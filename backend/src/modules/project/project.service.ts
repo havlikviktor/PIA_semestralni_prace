@@ -270,8 +270,4 @@ export class ProjectService {
 
     return this.findProjectById(projectId);
   }
-
-  remove(id: number) {
-    return this.projectRepository.delete(id);
-  }
 }
