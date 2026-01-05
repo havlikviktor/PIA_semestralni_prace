@@ -6,10 +6,6 @@ export class CreateProjectDto {
   @Type(() => Number)
   @IsNumber()
   customerId: number;
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  translatorId?: number;
   @IsEnum(Language)
   languageCode: Language;
 }

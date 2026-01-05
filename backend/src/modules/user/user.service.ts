@@ -90,10 +90,20 @@ export class UserService {
   async findCapableTranslator(languageCode: Language) {
     return this.userRepository
       .createQueryBuilder('user')
-      .innerJoinAndSelect('user.languages', 'language')
-      .where('user.role = :role', { role: Role.TRANSLATOR })
+      .innerJoinAndSelect('user.languages', 'language') 
+      .leftJoin(
+        'project',
+        'project',
+        'project.translatorId = user.id AND project.state = :state',
+        { state: 'assigned' },
+      )
+      .where('user.role = :role', { role: Role.TRANSLATOR }) // not needed in make case becase inner join selects only translators but just to be sure
       .andWhere('language.languageCode = :languageCode', { languageCode })
-      .getMany();
+      .groupBy('user.id')
+      .addGroupBy('language.translatorId')
+      .addGroupBy('language.languageCode')
+      .orderBy('COUNT(project.ProjectId)', 'ASC')
+      .getOne();
   }
 
   async updateRole(id: number, updateUserRoleDto: UpdateUserRoleDto) {

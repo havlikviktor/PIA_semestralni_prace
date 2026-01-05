@@ -13,6 +13,7 @@ import { User, Role } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
 import { ProjectFeedback } from './entities/project-feedback.entity';
 import { EmailService } from '../email/email.service';
+import { Language } from '../user/entities/translator-language.entity';
 
 @Injectable()
 export class ProjectService {
@@ -26,21 +27,34 @@ export class ProjectService {
   ) {}
 
   async create(createProjectDto: CreateProjectDto, file: Express.Multer.File) {
-    await this.checkCustomer(createProjectDto.customerId);
-    await this.checkTranslator(createProjectDto);
+    const customer = await this.checkCustomer(createProjectDto.customerId);
 
-    if (createProjectDto.translatorId === createProjectDto.customerId) {
-      throw new BadRequestException(
-        `Customer and translator cannot be the same user`,
-      );
-    }
+    const project = this.initializeProject(customer, createProjectDto, file);
+    const assignedTranslator = await this.assignTranslator(
+      project,
+      createProjectDto.languageCode,
+    );
 
+    const savedProject = await this.projectRepository.save(project);
+
+    await this.sendProjectNotifications(
+      savedProject,
+      assignedTranslator,
+      customer,
+    );
+
+    return this.mapToResponse(savedProject);
+  }
+
+  private initializeProject(
+    customer: User,
+    dto: CreateProjectDto,
+    file: Express.Multer.File,
+  ): Project {
     const project = new Project();
-    project.customer = { id: createProjectDto.customerId } as User;
-    if (createProjectDto.translatorId) {
-      project.translator = { id: createProjectDto.translatorId } as User;
-    }
-    project.languageCode = createProjectDto.languageCode;
+    project.customer = customer;
+    project.languageCode = dto.languageCode;
+
     if (file) {
       project.originalFile = file.buffer;
       const originalName = Buffer.from(file.originalname, 'latin1').toString(
@@ -52,21 +66,43 @@ export class ProjectService {
       );
     }
 
-    const savedProject = await this.projectRepository.save(project);
+    return project;
+  }
 
-    if (createProjectDto.translatorId) {
-      const translator = await this.userService.findOne(
-        createProjectDto.translatorId,
-      );
-      if (translator && translator.email) {
-        await this.emailService.sendProjectAssignedEmail(
-          translator.email,
-          savedProject.fileName,
-        );
-      }
+  private async assignTranslator(
+    project: Project,
+    languageCode: Language,
+  ): Promise<User | null> {
+    const bestTranslator = await this.userService.findCapableTranslator(
+      languageCode,
+    );
+
+    if (bestTranslator) {
+      project.translator = bestTranslator;
+      project.state = ProjectState.ASSIGNED;
+      return bestTranslator;
+    } else {
+      project.state = ProjectState.CLOSED;
+      return null;
     }
+  }
 
-    return this.mapToResponse(savedProject);
+  private async sendProjectNotifications(
+    project: Project,
+    translator: User | null,
+    customer: User,
+  ) {
+    if (project.state === ProjectState.ASSIGNED && translator?.email) {
+      await this.emailService.sendProjectAssignedEmail(
+        translator.email,
+        project.fileName,
+      );
+    } else if (project.state === ProjectState.CLOSED) {
+        await this.emailService.sendProjectClosedNoTranslatorEmail(
+          customer.email,
+          project.fileName,
+        );
+    }
   }
 
   private mapToResponse(project: Project) {
@@ -84,37 +120,7 @@ export class ProjectService {
     if (!customer) {
       throw new BadRequestException(`Customer with ID ${customerId} not found`);
     }
-  }
-
-  private async checkTranslator(createProjectDto: CreateProjectDto) {
-    if (!createProjectDto.translatorId) {
-      return;
-    }
-
-    const translator = await this.userService.findTranslator(
-      createProjectDto.translatorId,
-    );
-    if (!translator) {
-      throw new BadRequestException(
-        `Translator with ID ${createProjectDto.translatorId} not found or is not a translator`,
-      );
-    }
-    this.checkTranslatorCompetence(translator, createProjectDto);
-  }
-
-  private checkTranslatorCompetence(
-    translator: User,
-    createProjectDto: CreateProjectDto,
-  ) {
-    const hasCompetence = translator.languages.some(
-      (lang) => lang.languageCode === createProjectDto.languageCode,
-    );
-
-    if (!hasCompetence) {
-      throw new BadRequestException(
-        `Translator with ID ${createProjectDto.translatorId} does not have competence for language ${createProjectDto.languageCode}`,
-      );
-    }
+    return customer;
   }
 
   async uploadTranslatedFile(
