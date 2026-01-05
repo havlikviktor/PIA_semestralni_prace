@@ -50,16 +50,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {userRole === Role.ADMINISTRATOR && (
-          <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
-            <DashboardButton
-              title={t("manageProjects")}
-              href="/projects/manage"
-              imageSrc="/img/manageProjects1.png"
-            />
-          </div>
-        )}
-
         {(userRole === Role.ADMINISTRATOR ||
           userRole === Role.CUSTOMER ||
           userRole === Role.TRANSLATOR) && (
@@ -72,6 +62,16 @@ export default function Dashboard() {
               }
               href="/projects/active"
               imageSrc="/img/ongoingProjects.png"
+            />
+          </div>
+        )}
+
+        {userRole === Role.ADMINISTRATOR && (
+          <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
+            <DashboardButton
+              title={t("manageProjects")}
+              href="/projects/manage"
+              imageSrc="/img/manageProjects1.png"
             />
           </div>
         )}

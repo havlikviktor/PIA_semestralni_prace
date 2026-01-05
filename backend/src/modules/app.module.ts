@@ -7,6 +7,7 @@ import { ProjectModule } from './project/project.module';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { JwtAuthGuard } from './auth/auth.guard';
+import { EncryptionModule } from './encryption/encryption.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from './auth/auth.guard';
     ProjectModule,
     AuthModule,
     EmailModule,
+    EncryptionModule,
   ],
   controllers: [],
   providers: [

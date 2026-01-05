@@ -6,6 +6,7 @@ import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { User, Role } from './entities/user.entity';
 import { Language } from './entities/translator-language.entity';
 import { LanguageService } from './language.service';
+import { EncryptionService } from '../encryption/encryption.service';
 
 @Injectable()
 export class UserService {
@@ -13,6 +14,7 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly languageService: LanguageService,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -24,7 +26,13 @@ export class UserService {
       throw new ConflictException('User with this Email already exists');
     }
 
-    const user = this.userRepository.create(createUserDto);
+    const hashedPassword = await this.encryptionService.hash(
+      createUserDto.password,
+    );
+    const user = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
     return this.userRepository.save(user);
   }
 

@@ -11,6 +11,7 @@ import { UserService } from '../user/user.service';
 import { LoginDto } from '../user/dto/login.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { EncryptionService } from '../encryption/encryption.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   signToken(user: User) {
@@ -75,9 +77,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User with this email does not exist');
     }
-    if (!user || user.password !== loginDto.password) {
-      throw new UnauthorizedException('Invalid credentials, wtrong password');
-    }
+
+    await this.checkCredentials(user, loginDto);
+
     const token = this.signToken(user);
     return {
       user: {
@@ -88,5 +90,22 @@ export class AuthService {
       },
       accessToken: token,
     };
+  }
+
+  async checkCredentials(user: User, loginDto: LoginDto) {
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'User registered via Google, no password set',
+      );
+    }
+
+    const isPasswordValid = await this.encryptionService.compare(
+      loginDto.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials, wrong password');
+    }
   }
 }
