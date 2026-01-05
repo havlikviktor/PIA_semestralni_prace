@@ -7,6 +7,8 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
+// Pipe to transform multipart/form-data into DTO and validate according to decorators
+// before being sent to the server when creating a new project
 @Injectable()
 export class MultipartValidationPipe implements PipeTransform {
   async transform(value: any, { metatype }: ArgumentMetadata) {

@@ -19,7 +19,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectStateDto } from './dto/update-project-state.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MultipartValidationPipe } from '../../pipes/multipart-validation.pipe';
-import { FileValidationInterceptor } from './interceptors/File-validation.interceptor';
+import { FileValidationPipe } from './pipes/file-validation.pipe';
 import { Response } from 'express';
 import { FileType } from './entities/project.entity';
 
@@ -34,9 +34,9 @@ export class ProjectController {
   ) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('originalFile'), FileValidationInterceptor)
+  @UseInterceptors(FileInterceptor('originalFile'))
   async create(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(FileValidationPipe) file: Express.Multer.File,
     @Body(new MultipartValidationPipe()) createProjectDto: CreateProjectDto,
   ) {
     return await this.projectService.create(createProjectDto, file);
@@ -55,10 +55,10 @@ export class ProjectController {
   }
 
   @Post(':id/file')
-  @UseInterceptors(FileInterceptor('translatedFile'), FileValidationInterceptor)
+  @UseInterceptors(FileInterceptor('translatedFile'))
   async uploadTranslatedFile(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(FileValidationPipe) file: Express.Multer.File,
     @Request() req,
   ) {
     return this.projectService.uploadTranslatedFile(
