@@ -13,6 +13,7 @@ import {
   Res,
   ParseEnumPipe,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -25,33 +26,37 @@ import { FileType } from './entities/project.entity';
 
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackService } from './feedback.service';
+import { ProjectMapper } from './project.mapper';
+import { FeedbackMapper } from './feedback.mapper';
 
 @Controller('projects')
 export class ProjectController {
   constructor(
     private readonly projectService: ProjectService,
     private readonly feedbackService: FeedbackService,
+    private readonly projectMapper: ProjectMapper,
+    private readonly feedbackMapper: FeedbackMapper,
   ) {}
 
   @Post()
+  @HttpCode(204)
   @UseInterceptors(FileInterceptor('originalFile'))
   async create(
     @UploadedFile(FileValidationPipe) file: Express.Multer.File,
     @Body(new MultipartValidationPipe()) createProjectDto: CreateProjectDto,
   ) {
-    return await this.projectService.create(createProjectDto, file);
+     await this.projectService.create(createProjectDto, file);
   }
 
   @Get()
-  findAll(@Request() req) {
+  async findAll(@Request() req) {
     return this.projectService.findUserProjects(req.user.sub, req.user.role);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const project = await this.projectService.findProjectById(+id);
-    const hasTranslatedFile = await this.projectService.hasTranslatedFile(+id);
-    return { ...project, hasTranslatedFile };
+    const projectDomain = await this.projectService.findProjectById(+id);
+    return this.projectMapper.toDetailDto(projectDomain);
   }
 
   @Post(':id/file')
@@ -61,12 +66,13 @@ export class ProjectController {
     @UploadedFile(FileValidationPipe) file: Express.Multer.File,
     @Request() req,
   ) {
-    return this.projectService.uploadTranslatedFile(
+    const domain = await this.projectService.uploadTranslatedFile(
       +id,
       req.user.sub,
       req.user.role,
       file,
     );
+    return this.projectMapper.toDetailDto(domain);
   }
 
   @Get(':id/file')
@@ -100,12 +106,13 @@ export class ProjectController {
     @Body() createFeedbackDto: CreateFeedbackDto,
     @Request() req,
   ) {
-    return this.feedbackService.addFeedback(
+    const domain = await this.feedbackService.addFeedback(
       +id,
       createFeedbackDto.text,
       req.user.sub,
       req.user.role,
     );
+    return this.feedbackMapper.toResponseDto(domain);
   }
 
   @Patch(':id')
@@ -114,12 +121,13 @@ export class ProjectController {
     @Body() updateProjectStateDto: UpdateProjectStateDto,
     @Request() req,
   ) {
-    return this.projectService.updateState(
+    const domain = await this.projectService.updateState(
       +id,
       req.user.sub,
       req.user.role,
       updateProjectStateDto.state,
     );
+    return this.projectMapper.toDetailDto(domain);
   }
 
   @Delete(':id')

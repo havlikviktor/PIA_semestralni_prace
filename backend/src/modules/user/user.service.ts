@@ -1,45 +1,47 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserRoleDto } from './dto/update-user-role.dto';
-import { User, Role } from './entities/user.entity';
+import { UserEntity, Role } from './entities/user.entity';
 import { Language } from './entities/translator-language.entity';
 import { LanguageService } from './language.service';
 import { EncryptionService } from '../encryption/encryption.service';
+import { UserDomain } from '../../domain-entites/user.domain';
+import { UserMapper } from './user.mapper';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     private readonly languageService: LanguageService,
     private readonly encryptionService: EncryptionService,
+    private readonly userMapper: UserMapper,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(userDomain: UserDomain): Promise<UserDomain> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
+      where: { email: userDomain.email },
     });
 
     if (existingUser) {
       throw new ConflictException('User with this Email already exists');
     }
 
-    const hashedPassword = await this.encryptionService.hash(
-      createUserDto.password,
-    );
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
-    return this.userRepository.save(user);
+    if (userDomain.password) {
+      await userDomain.setPassword(userDomain.password, this.encryptionService);
+    }
+
+    const entity = this.userMapper.toEntity(userDomain);
+    const savedUserEntity = await this.userRepository.save(entity);
+    let newUserDomain = this.userMapper.toDomain(savedUserEntity);
+    newUserDomain.isNewUser = true;
+    return newUserDomain;
   }
 
   async findOrCreateGoogleUser(profile: any) {
     const { id, emails, displayName } = profile;
     const email = emails[0].value;
-
     let user = await this.userRepository.findOne({
       where: [{ googleId: id }, { email }],
     });
@@ -49,10 +51,10 @@ export class UserService {
         user.googleId = id;
         await this.userRepository.save(user);
       }
-      return user;
+      return this.userMapper.toDomain(user);
     }
 
-    user = this.userRepository.create({
+    const newUser = this.userRepository.create({
       googleId: id,
       email,
       name: displayName,
@@ -60,75 +62,82 @@ export class UserService {
       password: null,
     });
 
-    const createdUser = await this.userRepository.save(user);
-    return {
-      ...createdUser,
-      newUser: true,
-    };
+    const createdUser = await this.userRepository.save(newUser);
+    let domainUser = this.userMapper.toDomain(createdUser);
+
+    domainUser.isNewUser = true;
+    return domainUser;
   }
 
-  async findByRole(role?: Role) {
+  async findByRole(role?: Role): Promise<UserDomain[]> {
+    let users: UserEntity[];
     if (role) {
       if (role == Role.TRANSLATOR) {
-        return this.userRepository.find({
+        users = await this.userRepository.find({
           where: { role },
           relations: ['languages'],
         });
+      } else {
+        users = await this.userRepository.find({ where: { role } });
       }
-      return this.userRepository.find({ where: { role } });
+    } else {
+      users = await this.userRepository.find();
     }
-    return this.userRepository.find();
+    return users.map((user) => this.userMapper.toDomain(user));
   }
 
-  findOne(id: number) {
-    return this.userRepository.findOneBy({ id });
+  async findOne(id: number): Promise<UserDomain | null> {
+    const user = await this.userRepository.findOneBy({ id });
+    return user ? this.userMapper.toDomain(user) : null;
   }
 
-  findByEmail(email: string) {
-    return this.userRepository.findOneBy({ email });
+  async findByEmail(email: string): Promise<UserDomain | null> {
+    const user = await this.userRepository.findOneBy({ email });
+    return user ? this.userMapper.toDomain(user) : null;
   }
 
-  async findTranslator(id: number) {
-    return this.userRepository.findOne({
+  async findTranslator(id: number): Promise<UserDomain | null> {
+    const user = await this.userRepository.findOne({
       where: { id, role: Role.TRANSLATOR },
       relations: ['languages'],
     });
+    return user ? this.userMapper.toDomain(user) : null;
   }
 
-  async findCapableTranslator(languageCode: Language) {
-    return this.userRepository
+  async findCapableTranslator(
+    languageCode: Language,
+  ): Promise<UserDomain | null> {
+    const user = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoinAndSelect('user.languages', 'language') 
+      .innerJoinAndSelect('user.languages', 'language')
       .leftJoin(
         'project',
         'project',
         'project.translatorId = user.id AND project.state = :state',
         { state: 'assigned' },
       )
-      .where('user.role = :role', { role: Role.TRANSLATOR }) // not needed in make case becase inner join selects only translators but just to be sure
+      .where('user.role = :role', { role: Role.TRANSLATOR })
       .andWhere('language.languageCode = :languageCode', { languageCode })
       .groupBy('user.id')
       .addGroupBy('language.translatorId')
       .addGroupBy('language.languageCode')
       .orderBy('COUNT(project.ProjectId)', 'ASC')
       .getOne();
+
+    return user ? this.userMapper.toDomain(user) : null;
   }
 
-  async updateRole(id: number, updateUserRoleDto: UpdateUserRoleDto) {
-    const { role, languages } = updateUserRoleDto;
+  async updateRole(
+    id: number,
+    updateUserRoleDto: UpdateUserRoleDto,
+  ): Promise<void> {
+    let userDomain = new UserDomain({ id: id, ...updateUserRoleDto });
 
-    if (role) {
-      await this.userRepository.update(id, { role });
+    if (userDomain.isTranslator()) {
+      await this.languageService.updateTranslatorLanguages(userDomain);
     }
 
-    if (role === Role.TRANSLATOR) {
-      if (!languages) {
-        throw new ConflictException(
-          'Languages must be provided when setting role to TRANSLATOR',
-        );
-      }
-      await this.languageService.updateTranslatorLanguages(id, languages);
-    }
+    await this.userRepository.update(id, { role: userDomain.role });
   }
 
   remove(id: number) {

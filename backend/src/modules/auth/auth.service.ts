@@ -6,25 +6,28 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
 import { LoginDto } from '../user/dto/login.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { EncryptionService } from '../encryption/encryption.service';
+import { UserDomain } from '../../domain-entites/user.domain';
+import { UserMapper } from '../user/user.mapper';
+import { UserInfoDto } from '../user/dto/user-info.dto';
 
 @Injectable()
 export class AuthService {
-  private pendingTickets = new Map<string, { token: string; user: any }>();
+  private pendingTickets = new Map<string, { token: string; user: UserDomain }>();
 
   constructor(
     private jwtService: JwtService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private readonly encryptionService: EncryptionService,
+    private readonly userMapper: UserMapper,
   ) {}
 
-  signToken(user: User) {
+  signToken(user: UserDomain): string {
     return this.jwtService.sign({
       sub: user.id,
       name: user.name,
@@ -32,14 +35,14 @@ export class AuthService {
     });
   }
 
-  generateTicket(token: string, user: any): string {
+  generateTicket(token: string, user: UserDomain): string {
     const ticket = uuidv4();
     this.pendingTickets.set(ticket, { token, user });
     setTimeout(() => this.pendingTickets.delete(ticket), 2 * 60 * 1000);
     return ticket;
   }
 
-  exchangeTicket(ticket: string): { accessToken: string; user: any } {
+  exchangeTicket(ticket: string): { accessToken: string; user: UserInfoDto } {
     const data = this.pendingTickets.get(ticket);
     if (!data) {
       throw new NotFoundException('Invalid or expired ticket');
@@ -47,32 +50,22 @@ export class AuthService {
     this.pendingTickets.delete(ticket);
     return {
       accessToken: data.token,
-      user: {
-        id: data.user.id,
-        name: data.user.name,
-        role: data.user.role,
-        email: data.user.email,
-        newUser: data.user.newUser,
-      },
+      user : this.userMapper.toDto(data.user)
     };
   }
 
-  async signup(createUserDto: CreateUserDto) {
-    const user = await this.userService.create(createUserDto);
+  async signup(createUserDto: CreateUserDto): Promise<{ accessToken: string; user: UserInfoDto }> {
+    const userDomain = this.userMapper.toDomainFromCreateDto(createUserDto);
+    const user = await this.userService.create(userDomain);
+
     const token = this.signToken(user);
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        email: user.email,
-        newUser: true,
-      },
+      user: this.userMapper.toDto(user),
       accessToken: token,
     };
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<{ accessToken: string; user: UserInfoDto }> {
     const user = await this.userService.findByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('User with this email does not exist');
@@ -82,26 +75,17 @@ export class AuthService {
 
     const token = this.signToken(user);
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: this.userMapper.toDto(user),
       accessToken: token,
     };
   }
 
-  async checkCredentials(user: User, loginDto: LoginDto) {
-    if (!user.password) {
-      throw new UnauthorizedException(
-        'User registered via Google, no password set',
-      );
-    }
+  async checkCredentials(user: UserDomain, loginDto: LoginDto) {
+    user.checkHasPassword();
 
     const isPasswordValid = await this.encryptionService.compare(
       loginDto.password,
-      user.password,
+      user.password!,
     );
 
     if (!isPasswordValid) {

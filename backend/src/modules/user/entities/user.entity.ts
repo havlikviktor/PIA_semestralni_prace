@@ -8,7 +8,7 @@ export enum Role {
 }
 
 @Entity()
-export class User {
+export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
@@ -27,7 +27,7 @@ export class User {
   })
   languages: TranslatorLanguage[];
 
-  constructor(user: Partial<User>) {
+  constructor(user: Partial<UserEntity>) {
     Object.assign(this, user);
   }
 }

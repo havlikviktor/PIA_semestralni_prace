@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TranslatorLanguage } from './entities/translator-language.entity';
-import { TranslatorLanguageDto } from './dto/translator-language.dto';
+import { UserDomain } from 'src/domain-entites/user.domain';
 
 @Injectable()
 export class LanguageService {
@@ -12,18 +12,17 @@ export class LanguageService {
   ) {}
 
   async updateTranslatorLanguages(
-    translatorId: number,
-    languages: TranslatorLanguageDto[],
-  ) {
-    await this.languageRepository.delete({
-      translator: { id: translatorId },
-    });
+    userDomain: UserDomain)
+    {
+    if (userDomain.isTranslator() && userDomain.validateLanguages()) {
+      await this.languageRepository.delete({
+        translator: { id: userDomain.id },
+      });
 
-    if (languages.length > 0) {
-      const newLanguages = languages.map((lang) =>
+      const newLanguages = userDomain.languages!.map((lang) =>
         this.languageRepository.create({
-          translator: { id: translatorId },
-          languageCode: lang.languageCode,
+          translator: { id: userDomain.id },
+          languageCode: lang,
         }),
       );
       await this.languageRepository.save(newLanguages);

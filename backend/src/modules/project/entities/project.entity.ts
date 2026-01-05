@@ -7,9 +7,9 @@ import {
   Entity,
   OneToOne,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { UserEntity } from '../../user/entities/user.entity';
 import { Language } from '../../user/entities/translator-language.entity';
-import { ProjectFeedback } from './project-feedback.entity';
+import { ProjectFeedbackEntity } from './project-feedback.entity';
 
 export enum ProjectState {
   CREATED = 'created',
@@ -26,17 +26,17 @@ export enum FileType {
 }
 
 @Entity()
-export class Project {
+export class ProjectEntity {
   @PrimaryGeneratedColumn()
   ProjectId: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'customerId' })
-  customer: User;
+  customer: UserEntity;
 
-  @ManyToOne(() => User, { nullable: true, cascade: false })
+  @ManyToOne(() => UserEntity, { nullable: true, cascade: false })
   @JoinColumn({ name: 'translatorId' })
-  translator?: User;
+  translator?: UserEntity;
 
   @Column()
   languageCode: Language;
@@ -56,8 +56,8 @@ export class Project {
   @Column({ default: ProjectState.CREATED })
   state: ProjectState;
 
-  @OneToOne(() => ProjectFeedback, (feedback) => feedback.project)
-  feedback: ProjectFeedback;
+  @OneToOne(() => ProjectFeedbackEntity, (feedback) => feedback.project)
+  feedback: ProjectFeedbackEntity;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,3 +1,4 @@
+import { UserInfo } from "../types/user";
 import { useRouter } from "../i18n/navigation";
 import { useState, useCallback } from "react";
 
@@ -6,11 +7,11 @@ export const useAuth = () => {
   const [unauthorized, setUnauthorized] = useState(false);
 
   const handleLoginSuccess = useCallback(
-    (data: { accessToken: string; user: any }) => {
+    (data: { accessToken: string; user: UserInfo }) => {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      if (data.user.newUser) {
+      if (data.user.isNewUser) {
         router.push("/role-setup");
       } else {
         router.push("/dashboard");

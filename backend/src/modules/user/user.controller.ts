@@ -11,21 +11,27 @@ import {
 import { UserService } from './user.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { Role } from './entities/user.entity';
+import { UserMapper } from './user.mapper';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userMapper: UserMapper,
+  ) {}
 
   @Get()
   async getUsers(@Query('role') role?: Role) {
-    return this.userService.findByRole(role);
+    const users = await this.userService.findByRole(role);
+    return users.map((user) => this.userMapper.toDto(user));
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+    const user = await this.userService.findOne(+id);
+    return user ? this.userMapper.toDto(user) : null;
   }
-  
+
   @HttpCode(204)
   @Patch(':id')
   async updateRole(

@@ -49,9 +49,7 @@ function RoleSetupContent() {
     let body: any = { role };
 
     if (role === Role.TRANSLATOR) {
-      body.languages = selectedLanguages.map((lang) => ({
-        languageCode: lang,
-      }));
+      body.languages = selectedLanguages;
     }
 
     try {
@@ -64,7 +62,7 @@ function RoleSetupContent() {
       });
 
       if (user) {
-        const updatedUser = { ...user, role, newUser: false };
+        const updatedUser = { ...user, role, isNewUser: false };
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
 

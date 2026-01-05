@@ -1,7 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty,IsOptional, ArrayNotEmpty, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { Role } from '../entities/user.entity';
-import { TranslatorLanguageDto } from './translator-language.dto';
+import { IsEmail, IsEnum, IsNotEmpty } from 'class-validator';
 
 export class CreateUserDto {
     @IsNotEmpty()
@@ -10,13 +7,4 @@ export class CreateUserDto {
     readonly password: string;
     @IsEmail()
     readonly email: string;
-    @IsOptional()
-    @IsEnum(Role)
-    role?: Role;
-
-    @IsOptional()
-    @ArrayNotEmpty()
-    @ValidateNested({ each: true })
-    @Type(() => TranslatorLanguageDto)
-    languages?: TranslatorLanguageDto[];
 }

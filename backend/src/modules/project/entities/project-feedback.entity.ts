@@ -6,10 +6,10 @@ import {
   JoinColumn,
   PrimaryColumn,
 } from 'typeorm';
-import { Project } from './project.entity';
+import { ProjectEntity } from './project.entity';
 
 @Entity()
-export class ProjectFeedback {
+export class ProjectFeedbackEntity {
   @PrimaryColumn()
   projectId: number;
 
@@ -19,9 +19,9 @@ export class ProjectFeedback {
   @CreateDateColumn()
   createdAt: Date;
 
-  @OneToOne(() => Project, (project) => project.feedback, {
+  @OneToOne(() => ProjectEntity, (project) => project.feedback, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'projectId' })
-  project: Project;
+  project: ProjectEntity;
 }

@@ -3,4 +3,5 @@ export interface UserInfo {
   name: string;
   role: string;
   email: string;
+  isNewUser: boolean;
 }

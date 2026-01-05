@@ -1,50 +1,26 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectFeedback } from './entities/project-feedback.entity';
+import { ProjectFeedbackEntity } from './entities/project-feedback.entity';
 import { Repository } from 'typeorm/repository/Repository';
-import { Project, ProjectState } from './entities/project.entity';
-import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { ProjectService } from './project.service';
 import { Role } from '../user/entities/user.entity';
+import { FeedbackMapper } from './feedback.mapper';
+import { FeedbackDomain } from 'src/domain-entites/feedback.domain';
 
 @Injectable()
 export class FeedbackService {
   constructor(
-    @InjectRepository(ProjectFeedback)
-    private feedbackRepository: Repository<ProjectFeedback>,
+    @InjectRepository(ProjectFeedbackEntity)
+    private feedbackRepository: Repository<ProjectFeedbackEntity>,
     private readonly projectService: ProjectService,
+    private readonly feedbackMapper: FeedbackMapper,
   ) {}
 
-  checkProjectFeedbackEditAccess(project: Project, userId: number, role: Role) {
-    if (role === Role.ADMINISTRATOR) {
-      return;
-    }
-    this.projectService.checkProjectAccess(project, userId, role);
-
-    if (role === Role.CUSTOMER) {
-      if (
-        project.state !== ProjectState.APPROVED &&
-        project.state !== ProjectState.REJECTED
-      ) {
-        throw new BadRequestException(
-          `Project state must be in state APPROVED or REJECTED to create feedback`,
-        );
-      }
-    } else {
-      throw new ForbiddenException(
-        `Only administrators and customers can update project feedback`,
-      );
-    }
-  }
-
   async findFeedbackById(projectId: number) {
-    return this.feedbackRepository.findOne({
+    const entity = await this.feedbackRepository.findOne({
       where: { projectId: projectId },
     });
+    return entity ? this.feedbackMapper.toDomain(entity) : null;
   }
 
   async addFeedback(
@@ -53,16 +29,24 @@ export class FeedbackService {
     userId: number,
     userRole: Role,
   ) {
-    const project = await this.projectService.findProjectById(projectId);
-    
-    this.checkProjectFeedbackEditAccess(project!, userId, userRole);
-    const feedback = await this.findFeedbackById(projectId);
+    const projectDomain = await this.projectService.findProjectById(projectId);
+    const feedbackDomain = new FeedbackDomain({
+      projectId: projectId,
+      text: feedbackText,
+    });
 
-    if (feedback) {
+    feedbackDomain.checkCreateAccess(projectDomain, userId, userRole);
+
+    const existingFeedback = await this.findFeedbackById(projectId);
+    if (existingFeedback) {
       throw new BadRequestException(
         `Feedback for project with ID ${projectId} already exists`,
       );
     }
-    return this.feedbackRepository.save({ projectId, text: feedbackText });
+
+    const entity = this.feedbackMapper.toEntity(feedbackDomain);
+    const savedEntity = await this.feedbackRepository.save(entity);
+
+    return this.feedbackMapper.toDomain(savedEntity);
   }
 }
