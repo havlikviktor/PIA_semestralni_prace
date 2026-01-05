@@ -32,14 +32,13 @@ export class UserController {
     return user ? this.userMapper.toDto(user) : null;
   }
 
-  @HttpCode(204)
   @Patch(':id')
   async updateRole(
     @Param('id') id: string,
     @Body() updateUserRoleDto: UpdateUserRoleDto,
   ) {
-     await this.userService.updateRole(+id, updateUserRoleDto);
-  }
+     return this.userService.updateRole(+id, updateUserRoleDto);
+    }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {

@@ -8,6 +8,7 @@ import { EncryptionService } from '../encryption/encryption.service';
 import { UserDomain } from '../../domain-entites/user.domain';
 import { UserMapper } from './user.mapper';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
+import { UserInfoDto } from './dto/user-info.dto';
 
 @Injectable()
 export class UserService {
@@ -130,7 +131,7 @@ export class UserService {
   async updateRole(
     id: number,
     updateUserRoleDto: UpdateUserRoleDto,
-  ): Promise<void> {
+  ): Promise<UserInfoDto> {
     let userDomain = new UserDomain({ id: id, ...updateUserRoleDto });
 
     if (userDomain.isTranslator()) {
@@ -138,6 +139,14 @@ export class UserService {
     }
 
     await this.userRepository.update(id, { role: userDomain.role });
+
+    const updatedUser = await this.findOne(id);
+
+    if (!updatedUser) {
+      throw new Error('User not found');
+    }
+
+    return this.userMapper.toDto(updatedUser);
   }
 
   remove(id: number) {

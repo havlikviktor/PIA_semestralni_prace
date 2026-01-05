@@ -53,7 +53,7 @@ function RoleSetupContent() {
     }
 
     try {
-      await authFetch(`${serverIp}/user/${userId}`, {
+      const updatedUser = await authFetch(`${serverIp}/user/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -61,8 +61,7 @@ function RoleSetupContent() {
         body: JSON.stringify(body),
       });
 
-      if (user) {
-        const updatedUser = { ...user, role, isNewUser: false };
+      if (updatedUser) {
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
 
