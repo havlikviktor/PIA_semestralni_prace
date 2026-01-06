@@ -19,6 +19,7 @@ export default function Projects() {
   const translateState = useStateTranslation();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
+  const { missingCredentials } = useRequireAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,7 +43,7 @@ export default function Projects() {
     fetchProjects();
   }, [t, authFetch]);
 
-  if (unauthorized) {
+  if (missingCredentials || unauthorized) {
     return <LoginRedirecter />;
   }
 

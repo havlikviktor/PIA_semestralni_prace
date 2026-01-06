@@ -26,7 +26,7 @@ import UserInfo from "@/components/project-details/UserInfo";
 import AdminEmailPanel from "@/components/project-details/AdminEmailPanel";
 
 export default function ProjectPage() {
-  const { token, isLoading, user } = useRequireAuth();
+  const {isLoading, user, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const translateState = useStateTranslation();
   const params = useParams();
@@ -47,8 +47,6 @@ export default function ProjectPage() {
     show: false,
   });
 
-  if (unauthorized) return <LoginRedirecter />;
-  if ((!token || !user) && !isLoading) return <LoginRedirecter />;
 
   useEffect(() => {
     if (!id) return;
@@ -183,8 +181,10 @@ export default function ProjectPage() {
       }
     }
   };
+  
+  if ( missingCredentials || unauthorized) return <LoginRedirecter />;
+  if (loading || isLoading) return <LoginRedirecter />;
 
-  if (loading) return <LoadingSpinner text={t("loading")} />;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!project) return <div>{t("notFound")}</div>;
 
@@ -208,8 +208,8 @@ export default function ProjectPage() {
           <UserInfo
             titleKey="customer"
             user={project.customer}
-            isCurrentUser={user?.role === Role.CUSTOMER}
-            isAdmin={user?.role === Role.ADMINISTRATOR}
+            isCurrentUser={userRole === Role.CUSTOMER}
+            isAdmin={userRole === Role.ADMINISTRATOR}
           />
 
           {project.translator && (
@@ -218,8 +218,8 @@ export default function ProjectPage() {
               <UserInfo
                 titleKey="translator"
                 user={project.translator}
-                isCurrentUser={user?.role === Role.TRANSLATOR}
-                isAdmin={user?.role === Role.ADMINISTRATOR}
+                isCurrentUser={userRole === Role.TRANSLATOR}
+                isAdmin={userRole === Role.ADMINISTRATOR}
               />
             </>
           )}

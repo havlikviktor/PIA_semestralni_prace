@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "../../../../i18n/navigation";
 import { Language, LANGUAGE_LABELS } from "../../../../constants/languages";
 import { useRequireAuth } from "../../../../hooks/useRequireAuth";
@@ -13,7 +13,7 @@ import { getServerIp } from "@/utils/getServerIp";
 export default function CreateProject() {
   const t = useTranslations("CreateProject");
   const router = useRouter();
-  const { user, token, isLoading } = useRequireAuth();
+  const { user, isLoading, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     Language.ENGLISH
@@ -23,14 +23,6 @@ export default function CreateProject() {
   const [error, setError] = useState("");
   const serverIp = getServerIp();
 
-  if (unauthorized) {
-    return <LoginRedirecter />;
-  }
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -38,13 +30,11 @@ export default function CreateProject() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (!user) return;
+
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
-
-    if (!user || !token) {
-      return <LoginRedirecter />;
-    }
 
     try {
       if (!file) {
@@ -73,6 +63,14 @@ export default function CreateProject() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return <LoadingSpinner text={t("loading")} />;
+  }
+
+  if (missingCredentials || unauthorized) {
+    return <LoginRedirecter />;
+  }
 
   return (
     <div className="w-full bg-black text-white p-8 flex items-center justify-center">

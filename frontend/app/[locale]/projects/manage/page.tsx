@@ -11,36 +11,26 @@ import { getServerIp } from "@/utils/getServerIp";
 import { Project } from "@/types/project";
 import { ProjectState } from "@/constants/projectState";
 import { Role } from "@/constants/role";
-import { UserInfo } from "@/types/user";
 import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function ManageProjects() {
   const t = useTranslations("Projects");
   const translateState = useStateTranslation();
   const { authFetch, unauthorized } = useAuth();
+  const { missingCredentials, user } = useRequireAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterState, setFilterState] = useState<string>("ALL");
-  const [user, setUser] = useState<UserInfo | null>(null);
   const serverIp = getServerIp();
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      if (parsedUser.role !== Role.ADMINISTRATOR) {
-        router.push("/dashboard");
-      }
-    }
-  }, [router]);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const data = await authFetch(`${serverIp}/projects`);
+        if (!data) return;
         setProjects(data);
         setFilteredProjects(data);
       } catch (err: any) {
@@ -65,11 +55,11 @@ export default function ManageProjects() {
     }
   }, [filterState, projects]);
 
-  if (unauthorized) {
+  if (missingCredentials || unauthorized) {
     return <LoginRedirecter />;
   }
 
-  if (isLoading || !user) {
+  if (isLoading) {
     return <LoadingSpinner text={t("loading")} />;
   }
 

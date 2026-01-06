@@ -6,14 +6,16 @@ export const useRequireAuth = () => {
   const router = useRouter();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [missingCredentials, setMissingCredentials] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("accessToken");
 
     if (!storedUser || !storedToken) {
-      router.push("/");
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      setMissingCredentials(true);
       return;
     }
 
@@ -31,5 +33,5 @@ export const useRequireAuth = () => {
     }
   }, [router]);
 
-  return { user, token, isLoading };
+  return { user, token, isLoading, missingCredentials };
 };

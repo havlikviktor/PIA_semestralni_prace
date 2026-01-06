@@ -21,7 +21,7 @@ import { downloadProjectFile } from "@/utils/fileDownloader";
 export default function ActiveProjects() {
   const t = useTranslations("Projects");
   const translateState = useStateTranslation();
-  const { token, user } = useRequireAuth();
+  const { user, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -33,6 +33,7 @@ export default function ActiveProjects() {
     const fetchProjects = async () => {
       try {
         const data: Project[] = await authFetch(`${serverIp}/projects`);
+        if (!data) return;
         const userRole = user ? mapRoleToEnum(user.role) : null;
 
         const filteredProjects = data.filter((project) => {
@@ -67,14 +68,6 @@ export default function ActiveProjects() {
     }
   }, [user, t, serverIp, authFetch]);
 
-  if (unauthorized) {
-    return <LoginRedirecter />;
-  }
-
-  if (isLoading) {
-    return <LoadingSpinner text={t("loading")} />;
-  }
-
   const handleDownload = async (
     e: React.MouseEvent,
     projectId: number,
@@ -91,6 +84,14 @@ export default function ActiveProjects() {
       }
     }
   };
+
+  if (missingCredentials || unauthorized) {
+    return <LoginRedirecter />;
+  }
+
+  if (isLoading) {
+    return <LoadingSpinner text={t("loading")} />;
+  }
 
   return (
     <div className="w-full bg-black text-white p-8">

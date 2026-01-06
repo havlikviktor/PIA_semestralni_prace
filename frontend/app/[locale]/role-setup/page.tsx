@@ -15,7 +15,7 @@ function RoleSetupContent() {
   const tSetup = useTranslations("RoleSetup");
   const locale = useLocale();
   const router = useRouter();
-  const { user, token } = useRequireAuth();
+  const { user, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
 
   const [role, setRole] = useState(Role.CUSTOMER);
@@ -44,7 +44,7 @@ function RoleSetupContent() {
     e.preventDefault();
     setError("");
 
-    if (!userId || !token) return;
+    if (!userId) return;
 
     let body: any = { role };
 
@@ -73,7 +73,7 @@ function RoleSetupContent() {
     }
   };
 
-  if (unauthorized) {
+  if (missingCredentials || unauthorized) {
     return <LoginRedirecter />;
   }
 

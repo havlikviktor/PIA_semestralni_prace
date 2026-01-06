@@ -10,15 +10,14 @@ import { Role } from "@/constants/role";
 
 export default function Dashboard() {
   const t = useTranslations("Dashboard");
-  const { user, isLoading } = useRequireAuth();
-
-  const userRole = user ? mapRoleToEnum(user.role) : null;
+  const { user, isLoading, missingCredentials } = useRequireAuth();
 
   if (isLoading) {
     return <LoadingSpinner text={t("loading")} />;
   }
-
-  if (!user || !userRole) {
+  
+  const userRole = user ? mapRoleToEnum(user.role) : null;
+  if (missingCredentials || !userRole) {
     return <LoginRedirecter />;
   }
 
