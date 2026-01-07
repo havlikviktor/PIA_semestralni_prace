@@ -10,4 +10,5 @@ COPY . .
 
 EXPOSE 4000
 
+ENV IS_PROD=false
 CMD ["npm", "run", "dev"]

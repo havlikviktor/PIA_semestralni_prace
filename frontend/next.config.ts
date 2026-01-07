@@ -6,7 +6,7 @@ const isProd = process.env.IS_PROD === 'true';
 
 const nextConfig: NextConfig = {
   output: isProd ? 'standalone' : undefined,
-  reactStrictMode: true,
+  reactStrictMode: isProd,
   experimental: {
     // @ts-ignore
     allowedDevOrigins: [`http://${process.env.NEXT_PUBLIC_SERVER_IP}:${process.env.BACKEND_PORT}`],
