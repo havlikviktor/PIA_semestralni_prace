@@ -92,7 +92,7 @@ export class UserService {
       .createQueryBuilder('user')
       .innerJoinAndSelect('user.languages', 'language')
       .leftJoin(
-        'project',
+        'project_entity',
         'project',
         'project.translatorId = user.id AND project.state = :state',
         { state: 'assigned' },
@@ -102,7 +102,7 @@ export class UserService {
       .groupBy('user.id')
       .addGroupBy('language.translatorId')
       .addGroupBy('language.languageCode')
-      .orderBy('COUNT(project.ProjectId)', 'ASC')
+      .orderBy('COUNT("project"."ProjectId")', 'ASC')
       .getOne();
 
     return user ? this.userMapper.toDomain(user) : null;
