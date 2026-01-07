@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity, Role } from './entities/user.entity';
@@ -105,20 +105,24 @@ export class UserService {
 
   async updateRole(
     id: number,
+    requesterRole: Role,
     updateUserRoleDto: UpdateUserRoleDto,
   ): Promise<UserInfoDto> {
-    let userDomain = new UserDomain({ id: id, ...updateUserRoleDto });
-
-    if (userDomain.isTranslator()) {
-      await this.languageService.updateTranslatorLanguages(userDomain);
+    let userDomainUpdate = new UserDomain({ id: id, ...updateUserRoleDto });
+    if (userDomainUpdate.role === Role.ADMINISTRATOR && requesterRole !== Role.ADMINISTRATOR) {
+      throw new ForbiddenException('User does not have permission to assign administrator role.');
     }
 
-    await this.userRepository.update(id, { role: userDomain.role });
+    if (userDomainUpdate.isTranslator()) {
+      await this.languageService.updateTranslatorLanguages(userDomainUpdate);
+    }
+
+    await this.userRepository.update(id, { role: userDomainUpdate.role });
 
     const updatedUser = await this.findOne(id);
 
-    if (!updatedUser) {
-      throw new Error('User not found');
+    if (!updatedUser) { // should not happen, but just in case
+      throw new NotFoundException('User not found');
     }
 
     return this.userMapper.toDto(updatedUser);
