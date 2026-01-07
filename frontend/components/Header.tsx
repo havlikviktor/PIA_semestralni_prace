@@ -1,31 +1,31 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import { Link, useRouter, usePathname } from "../i18n/navigation";
-import { useRoleTranslation } from "../hooks/useRoleTranslation";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { Role } from "../constants/role";
-import { mapRoleToEnum } from "../utils/RoleMapper";
+import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+import { Link, useRouter, usePathname } from '../i18n/navigation';
+import { useRoleTranslation } from '../hooks/useRoleTranslation';
+import LanguageSwitcher from './LanguageSwitcher';
+import { Role } from '../constants/role';
+import { mapRoleToEnum } from '../utils/RoleMapper';
 
 export default function Header() {
-  const t = useTranslations("Dashboard");
+  const t = useTranslations('Dashboard');
   const translateRole = useRoleTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const isLoginPage = pathname === "/";
+  const isLoginPage = pathname === '/';
   const userRole = user ? mapRoleToEnum(user.role) : null;
 
   useEffect(() => {
-    const userStr = localStorage.getItem("user");
+    const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
         setUser(JSON.parse(userStr));
       } catch (e) {
-        console.error("Failed to parse user data", e);
+        console.error('Failed to parse user data', e);
         setUser(null);
       }
     } else {
@@ -34,10 +34,10 @@ export default function Header() {
   }, [pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
     setUser(null);
-    router.push("/");
+    router.push('/');
   };
 
   const toggleMenu = () => {
@@ -73,9 +73,7 @@ export default function Header() {
                     </svg>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white">
-                      {user.name}
-                    </span>
+                    <span className="text-sm font-medium text-white">{user.name}</span>
                     <span className="text-xs text-gray-400 capitalize">
                       {translateRole(user.role)}
                     </span>
@@ -86,59 +84,58 @@ export default function Header() {
                   <Link
                     href="/dashboard"
                     className={`text-sm font-medium ${
-                      pathname === "/dashboard"
-                        ? "text-white underline underline-offset-4"
-                        : "text-gray-400 hover:text-white"
+                      pathname === '/dashboard'
+                        ? 'text-white underline underline-offset-4'
+                        : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    {t("dashboard")}
+                    {t('dashboard')}
                   </Link>
                   <Link
                     href="/projects"
                     className={`text-sm font-medium ${
-                      pathname === "/projects"
-                        ? "text-white underline underline-offset-4"
-                        : "text-gray-400 hover:text-white"
+                      pathname === '/projects'
+                        ? 'text-white underline underline-offset-4'
+                        : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    {t("projects")}
+                    {t('projects')}
                   </Link>
-                  {(userRole === Role.ADMINISTRATOR ||
-                    userRole === Role.CUSTOMER) && (
+                  {(userRole === Role.ADMINISTRATOR || userRole === Role.CUSTOMER) && (
                     <Link
                       href="/projects/new"
                       className={`text-sm font-medium ${
-                        pathname === "/projects/new"
-                          ? "text-white underline underline-offset-4"
-                          : "text-gray-400 hover:text-white"
+                        pathname === '/projects/new'
+                          ? 'text-white underline underline-offset-4'
+                          : 'text-gray-400 hover:text-white'
                       }`}
                     >
-                      {t("newProject")}
+                      {t('newProject')}
                     </Link>
                   )}
                   {userRole === Role.ADMINISTRATOR && (
                     <Link
                       href="/projects/manage"
                       className={`text-sm font-medium ${
-                        pathname === "/projects/manage"
-                          ? "text-white underline underline-offset-4"
-                          : "text-gray-400 hover:text-white"
+                        pathname === '/projects/manage'
+                          ? 'text-white underline underline-offset-4'
+                          : 'text-gray-400 hover:text-white'
                       }`}
                     >
-                      {t("manageProjects")}
+                      {t('manageProjects')}
                     </Link>
                   )}
                   <Link
                     href="/projects/active"
                     className={`text-sm font-medium ${
-                      pathname === "/projects/active"
-                        ? "text-white underline underline-offset-4"
-                        : "text-gray-400 hover:text-white"
+                      pathname === '/projects/active'
+                        ? 'text-white underline underline-offset-4'
+                        : 'text-gray-400 hover:text-white'
                     }`}
                   >
                     {userRole === Role.TRANSLATOR
-                      ? t("projectsToTranslate")
-                      : t("projectsToApproval")}
+                      ? t('projectsToTranslate')
+                      : t('projectsToApproval')}
                   </Link>
                 </nav>
 
@@ -180,7 +177,7 @@ export default function Header() {
                 onClick={handleLogout}
                 className="text-gray-200 hover:text-white text-sm font-medium"
               >
-                {t("logout")}
+                {t('logout')}
               </button>
             )}
           </div>
@@ -195,36 +192,35 @@ export default function Header() {
               href="/dashboard"
               onClick={closeMenu}
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                pathname === "/dashboard"
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                pathname === '/dashboard'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
             >
-              {t("dashboard")}
+              {t('dashboard')}
             </Link>
             <Link
               href="/projects"
               onClick={closeMenu}
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                pathname === "/projects"
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                pathname === '/projects'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
             >
-              {t("projects")}
+              {t('projects')}
             </Link>
-            {(userRole === Role.ADMINISTRATOR ||
-              userRole === Role.CUSTOMER) && (
+            {(userRole === Role.ADMINISTRATOR || userRole === Role.CUSTOMER) && (
               <Link
                 href="/projects/new"
                 onClick={closeMenu}
                 className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  pathname === "/projects/new"
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  pathname === '/projects/new'
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
               >
-                {t("newProject")}
+                {t('newProject')}
               </Link>
             )}
             {userRole === Role.ADMINISTRATOR && (
@@ -232,26 +228,24 @@ export default function Header() {
                 href="/projects/manage"
                 onClick={closeMenu}
                 className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  pathname === "/projects/manage"
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  pathname === '/projects/manage'
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
               >
-                {t("manageProjects")}
+                {t('manageProjects')}
               </Link>
             )}
             <Link
               href="/projects/active"
               onClick={closeMenu}
               className={`block px-3 py-2 rounded-md text-base font-medium ${
-                pathname === "/projects/active"
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                pathname === '/projects/active'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
               }`}
             >
-              {userRole === Role.TRANSLATOR
-                ? t("projectsToTranslate")
-                : t("projectsToApproval")}
+              {userRole === Role.TRANSLATOR ? t('projectsToTranslate') : t('projectsToApproval')}
             </Link>
           </nav>
         </div>

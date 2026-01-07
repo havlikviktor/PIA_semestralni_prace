@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "../i18n/navigation";
-import { UserInfo } from "@/types/user";
+import { useEffect, useState } from 'react';
+import { useRouter } from '../i18n/navigation';
+import { UserInfo } from '@/types/user';
 
 export const useRequireAuth = () => {
   const router = useRouter();
@@ -9,12 +9,12 @@ export const useRequireAuth = () => {
   const [missingCredentials, setMissingCredentials] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("accessToken");
+    const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('accessToken');
 
     if (!storedUser || !storedToken) {
-      localStorage.removeItem("user");
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
       setMissingCredentials(true);
       return;
     }
@@ -24,10 +24,10 @@ export const useRequireAuth = () => {
       setUser(parsedUser);
       setToken(storedToken);
     } catch (error) {
-      console.error("Invalid user data in localStorage");
-      localStorage.removeItem("user");
-      localStorage.removeItem("accessToken");
-      router.push("/");
+      console.error('Invalid user data in localStorage');
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      router.push('/');
     } finally {
       setIsLoading(false);
     }

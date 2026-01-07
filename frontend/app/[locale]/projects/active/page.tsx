@@ -1,32 +1,32 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import { useRouter } from "../../../../i18n/navigation";
-import { mapRoleToEnum } from "../../../../utils/RoleMapper";
-import { mapStateToEnum } from "@/utils/StateMapper";
-import { useStateTranslation } from "@/hooks/useStateTranslation";
-import { useRequireAuth } from "../../../../hooks/useRequireAuth";
-import { useAuth } from "@/hooks/useAuth";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import LoginRedirecter from "@/components/LoginRedirecter";
-import { ProjectState } from "@/constants/projectState";
-import { FileState } from "@/constants/fileState";
-import { Role } from "@/constants/role";
-import { Project } from "@/types/project";
-import { getServerIp } from "@/utils/getServerIp";
-import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
-import { downloadProjectFile } from "@/utils/fileDownloader";
+import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+import { useRouter } from '../../../../i18n/navigation';
+import { mapRoleToEnum } from '../../../../utils/RoleMapper';
+import { mapStateToEnum } from '@/utils/StateMapper';
+import { useStateTranslation } from '@/hooks/useStateTranslation';
+import { useRequireAuth } from '../../../../hooks/useRequireAuth';
+import { useAuth } from '@/hooks/useAuth';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import LoginRedirecter from '@/components/LoginRedirecter';
+import { ProjectState } from '@/constants/projectState';
+import { FileState } from '@/constants/fileState';
+import { Role } from '@/constants/role';
+import { Project } from '@/types/project';
+import { getServerIp } from '@/utils/getServerIp';
+import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
+import { downloadProjectFile } from '@/utils/fileDownloader';
 
 export default function ActiveProjects() {
-  const t = useTranslations("Projects");
+  const t = useTranslations('Projects');
   const translateState = useStateTranslation();
   const { user, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const serverIp = getServerIp();
 
   useEffect(() => {
@@ -42,8 +42,7 @@ export default function ActiveProjects() {
           if (userRole === Role.CUSTOMER) {
             return (
               projectState === ProjectState.COMPLETED ||
-              ((projectState === ProjectState.APPROVED ||
-                projectState === ProjectState.REJECTED) &&
+              ((projectState === ProjectState.APPROVED || projectState === ProjectState.REJECTED) &&
                 !project.feedback)
             );
           } else if (userRole === Role.TRANSLATOR) {
@@ -54,9 +53,9 @@ export default function ActiveProjects() {
 
         setProjects(filteredProjects);
       } catch (err: any) {
-        if (err.message !== "Unauthorized") {
+        if (err.message !== 'Unauthorized') {
           console.error(err);
-          setError(t("failedToLoad"));
+          setError(t('failedToLoad'));
         }
       } finally {
         setIsLoading(false);
@@ -68,19 +67,15 @@ export default function ActiveProjects() {
     }
   }, [user, t, serverIp, authFetch]);
 
-  const handleDownload = async (
-    e: React.MouseEvent,
-    projectId: number,
-    type: FileState
-  ) => {
+  const handleDownload = async (e: React.MouseEvent, projectId: number, type: FileState) => {
     e.stopPropagation();
 
     try {
       await downloadProjectFile(serverIp, projectId, type, authFetch);
     } catch (err: any) {
-      if (err.message !== "Unauthorized") {
+      if (err.message !== 'Unauthorized') {
         console.error(err);
-        setError(t("downloadError"));
+        setError(t('downloadError'));
       }
     }
   };
@@ -90,13 +85,13 @@ export default function ActiveProjects() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner text={t("loading")} />;
+    return <LoadingSpinner text={t('loading')} />;
   }
 
   return (
     <div className="w-full bg-black text-white p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">{t("activeTitle")}</h1>
+        <h1 className="text-3xl font-bold mb-8">{t('activeTitle')}</h1>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -105,22 +100,19 @@ export default function ActiveProjects() {
             <table className="w-full text-left">
               <thead className="bg-gray-800 text-gray-400 uppercase text-sm">
                 <tr>
-                  <th className="px-6 py-3">{t("number")}</th>
-                  <th className="px-6 py-3">{t("state")}</th>
-                  <th className="px-6 py-3">{t("language")}</th>
-                  <th className="px-6 py-3">{t("fileTitle")}</th>
-                  <th className="px-6 py-3">{t("createdAt")}</th>
-                  <th className="px-6 py-3">{t("actions")}</th>
+                  <th className="px-6 py-3">{t('number')}</th>
+                  <th className="px-6 py-3">{t('state')}</th>
+                  <th className="px-6 py-3">{t('language')}</th>
+                  <th className="px-6 py-3">{t('fileTitle')}</th>
+                  <th className="px-6 py-3">{t('createdAt')}</th>
+                  <th className="px-6 py-3">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {projects.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-4 text-center text-gray-500"
-                    >
-                      {t("noProjects")}
+                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                      {t('noProjects')}
                     </td>
                   </tr>
                 ) : (
@@ -130,16 +122,14 @@ export default function ActiveProjects() {
                       <tr
                         key={project.ProjectId}
                         className="hover:bg-gray-800/50 transition-colors cursor-pointer"
-                        onClick={() =>
-                          router.push(`/projects/${project.ProjectId}`)
-                        }
+                        onClick={() => router.push(`/projects/${project.ProjectId}`)}
                       >
                         <td className="px-6 py-4 text-gray-400">{index + 1}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${ProjectStyleMapper.getStyle(
-                                projectState
+                                projectState,
                               )}`}
                             >
                               {translateState(project.state)}
@@ -150,35 +140,29 @@ export default function ActiveProjects() {
                                 <span
                                   className={`text-xs ${
                                     projectState === ProjectState.APPROVED
-                                      ? "text-purple-300"
+                                      ? 'text-purple-300'
                                       : projectState === ProjectState.REJECTED
-                                      ? "text-rose-300"
-                                      : "text-gray-300"
+                                        ? 'text-rose-300'
+                                        : 'text-gray-300'
                                   }`}
                                 >
-                                  ({t("missingFeedback")})
+                                  ({t('missingFeedback')})
                                 </span>
                               )}
                           </div>
                         </td>
                         <td className="px-6 py-4">{project.languageCode}</td>
-                        <td className="px-6 py-4 font-medium">
-                          {project.fileName}
-                        </td>
+                        <td className="px-6 py-4 font-medium">{project.fileName}</td>
                         <td className="px-6 py-4 text-gray-400">
                           {new Date(project.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 flex gap-2">
                           <button
                             onClick={(e) =>
-                              handleDownload(
-                                e,
-                                project.ProjectId,
-                                FileState.ORIGINAL
-                              )
+                              handleDownload(e, project.ProjectId, FileState.ORIGINAL)
                             }
                             className="text-gray-400 hover:text-white transition-colors"
-                            title={t("downloadOriginal")}
+                            title={t('downloadOriginal')}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -203,14 +187,10 @@ export default function ActiveProjects() {
                           ].includes(projectState) && (
                             <button
                               onClick={(e) =>
-                                handleDownload(
-                                  e,
-                                  project.ProjectId,
-                                  FileState.TRANSLATED
-                                )
+                                handleDownload(e, project.ProjectId, FileState.TRANSLATED)
                               }
                               className="text-gray-400 hover:text-white transition-colors"
-                              title={t("downloadTranslated")}
+                              title={t('downloadTranslated')}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"

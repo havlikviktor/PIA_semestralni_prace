@@ -1,4 +1,4 @@
-import { FileState } from "@/constants/fileState";
+import { FileState } from '@/constants/fileState';
 
 export const downloadProjectFile = async (
   serverIp: string,
@@ -7,24 +7,22 @@ export const downloadProjectFile = async (
   authFetch: (
     url: string,
     options?: RequestInit,
-    responseType?: "json" | "blob" | "text"
-  ) => Promise<any>
+    responseType?: 'json' | 'blob' | 'text',
+  ) => Promise<any>,
 ): Promise<void> => {
   const { blob, headers } = await authFetch(
     `${serverIp}/projects/${projectId}/file?type=${type}`,
     {},
-    "blob"
+    'blob',
   );
 
   const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
-  const contentDisposition = headers.get("Content-Disposition");
+  const contentDisposition = headers.get('Content-Disposition');
   let filename = `${type}_file`;
   if (contentDisposition) {
-    const filenameStarMatch = contentDisposition.match(
-      /filename\*=UTF-8''([^;]+)/
-    );
+    const filenameStarMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
     const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
 
     if (filenameStarMatch && filenameStarMatch[1]) {

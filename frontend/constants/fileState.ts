@@ -1,4 +1,4 @@
 export enum FileState {
-    ORIGINAL = 'original',
-    TRANSLATED = 'translated',
+  ORIGINAL = 'original',
+  TRANSLATED = 'translated',
 }

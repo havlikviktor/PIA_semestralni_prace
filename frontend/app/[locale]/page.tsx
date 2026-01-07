@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState, Suspense } from "react";
-import { useAuth } from "../../hooks/useAuth";
-import { useTranslations } from "next-intl";
-import { getServerIp } from "@/utils/getServerIp";
+import { useState, Suspense } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { useTranslations } from 'next-intl';
+import { getServerIp } from '@/utils/getServerIp';
 
 function AuthContent() {
-  const t = useTranslations("Auth");
+  const t = useTranslations('Auth');
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
   const { handleLoginSuccess } = useAuth();
   const serverIp = getServerIp();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
-    const endpoint = isLogin ? "login" : "signup";
+    const endpoint = isLogin ? 'login' : 'signup';
     let body: any = { email, password };
 
     if (!isLogin) {
@@ -28,15 +28,15 @@ function AuthContent() {
 
     try {
       const res = await fetch(`${serverIp}/auth/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || t("errorGeneric"));
+        throw new Error(data.message || t('errorGeneric'));
       }
 
       if (data.accessToken) {
@@ -51,7 +51,7 @@ function AuthContent() {
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-          {isLogin ? t("loginTitle") : t("signupTitle")}
+          {isLogin ? t('loginTitle') : t('signupTitle')}
         </h2>
 
         {error && (
@@ -64,9 +64,7 @@ function AuthContent() {
           {!isLogin && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  {t("nameLabel")}
-                </label>
+                <label className="block text-sm font-medium text-gray-700">{t('nameLabel')}</label>
                 <input
                   type="text"
                   value={name}
@@ -79,9 +77,7 @@ function AuthContent() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {t("emailLabel")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">{t('emailLabel')}</label>
             <input
               type="email"
               value={email}
@@ -92,9 +88,7 @@ function AuthContent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {t("passwordLabel")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">{t('passwordLabel')}</label>
             <input
               type="password"
               value={password}
@@ -108,7 +102,7 @@ function AuthContent() {
             type="submit"
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {isLogin ? t("loginButton") : t("signupButton")}
+            {isLogin ? t('loginButton') : t('signupButton')}
           </button>
         </form>
 
@@ -118,7 +112,7 @@ function AuthContent() {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">{t("or")}</span>
+              <span className="px-2 bg-white text-gray-500">{t('or')}</span>
             </div>
           </div>
 
@@ -153,7 +147,7 @@ function AuthContent() {
                   />
                 </g>
               </svg>
-              {t("continueWithGoogle")}
+              {t('continueWithGoogle')}
             </a>
           </div>
         </div>
@@ -163,7 +157,7 @@ function AuthContent() {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-blue-600 hover:text-blue-500"
           >
-            {isLogin ? t("noAccount") : t("hasAccount")}
+            {isLogin ? t('noAccount') : t('hasAccount')}
           </button>
         </div>
       </div>
@@ -172,9 +166,9 @@ function AuthContent() {
 }
 
 export default function Home() {
-  const t = useTranslations("Auth");
+  const t = useTranslations('Auth');
   return (
-    <Suspense fallback={<div>{t("loading")}</div>}>
+    <Suspense fallback={<div>{t('loading')}</div>}>
       <AuthContent />
     </Suspense>
   );

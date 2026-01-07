@@ -1,7 +1,7 @@
-import { useTranslations } from "next-intl";
-import { ProjectState } from "@/constants/projectState";
-import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
-import { Role } from "@/constants/role";
+import { useTranslations } from 'next-intl';
+import { ProjectState } from '@/constants/projectState';
+import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
+import { Role } from '@/constants/role';
 
 interface CustomerActionsProps {
   userRole: Role | undefined;
@@ -14,7 +14,7 @@ export default function CustomerActions({
   projectState,
   onUpdateState,
 }: CustomerActionsProps) {
-  const t = useTranslations("ProjectDetails");
+  const t = useTranslations('ProjectDetails');
 
   if (userRole !== Role.CUSTOMER || projectState !== ProjectState.COMPLETED) {
     return null;
@@ -25,18 +25,18 @@ export default function CustomerActions({
       <button
         onClick={() => onUpdateState(ProjectState.APPROVED)}
         className={`px-4 py-2 rounded hover:bg-lime-800 ${ProjectStyleMapper.getStyle(
-          ProjectState.COMPLETED
+          ProjectState.COMPLETED,
         )}`}
       >
-        {t("accept")}
+        {t('accept')}
       </button>
       <button
         onClick={() => onUpdateState(ProjectState.REJECTED)}
         className={`text-rose-100 px-4 py-2 rounded hover:bg-rose-800 ${ProjectStyleMapper.getBackgroundStyle(
-          ProjectState.REJECTED
+          ProjectState.REJECTED,
         )}`}
       >
-        {t("reject")}
+        {t('reject')}
       </button>
     </div>
   );

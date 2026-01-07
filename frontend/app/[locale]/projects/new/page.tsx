@@ -1,26 +1,24 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { useRouter } from "../../../../i18n/navigation";
-import { Language, LANGUAGE_LABELS } from "../../../../constants/languages";
-import { useRequireAuth } from "../../../../hooks/useRequireAuth";
-import { useAuth } from "@/hooks/useAuth";
-import LoginRedirecter from "@/components/LoginRedirecter";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import { getServerIp } from "@/utils/getServerIp";
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { useRouter } from '../../../../i18n/navigation';
+import { Language, LANGUAGE_LABELS } from '../../../../constants/languages';
+import { useRequireAuth } from '../../../../hooks/useRequireAuth';
+import { useAuth } from '@/hooks/useAuth';
+import LoginRedirecter from '@/components/LoginRedirecter';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { getServerIp } from '@/utils/getServerIp';
 
 export default function CreateProject() {
-  const t = useTranslations("CreateProject");
+  const t = useTranslations('CreateProject');
   const router = useRouter();
   const { user, isLoading, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
-    Language.ENGLISH
-  );
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.ENGLISH);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const serverIp = getServerIp();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,31 +31,31 @@ export default function CreateProject() {
     if (!user) return;
 
     e.preventDefault();
-    setError("");
+    setError('');
     setIsSubmitting(true);
 
     try {
       if (!file) {
-        setError(t("noFileSelected"));
+        setError(t('noFileSelected'));
         setIsSubmitting(false);
         return;
       }
 
       const formData = new FormData();
-      formData.append("originalFile", file);
-      formData.append("languageCode", selectedLanguage);
-      formData.append("customerId", user.id.toString());
+      formData.append('originalFile', file);
+      formData.append('languageCode', selectedLanguage);
+      formData.append('customerId', user.id.toString());
 
       await authFetch(`${serverIp}/projects`, {
-        method: "POST",
+        method: 'POST',
         body: formData,
       });
 
-      router.push("/projects");
+      router.push('/projects');
     } catch (err: any) {
-      if (err.message !== "Unauthorized") {
+      if (err.message !== 'Unauthorized') {
         console.error(err);
-        setError(err.message || t("error"));
+        setError(err.message || t('error'));
       }
     } finally {
       setIsSubmitting(false);
@@ -65,7 +63,7 @@ export default function CreateProject() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner text={t("loading")} />;
+    return <LoadingSpinner text={t('loading')} />;
   }
 
   if (missingCredentials || unauthorized) {
@@ -75,7 +73,7 @@ export default function CreateProject() {
   return (
     <div className="w-full bg-black text-white p-8 flex items-center justify-center">
       <div className="w-full max-w-md bg-stone-900 rounded-lg shadow-xl border border-gray-800 p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center">{t("title")}</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">{t('title')}</h1>
 
         {error && (
           <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6 text-sm">
@@ -86,7 +84,7 @@ export default function CreateProject() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
-              {t("selectLanguage")}
+              {t('selectLanguage')}
             </label>
             <select
               value={selectedLanguage}
@@ -103,7 +101,7 @@ export default function CreateProject() {
 
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
-              {t("uploadFile")}
+              {t('uploadFile')}
             </label>
             <div className="relative border-2 border-dashed border-gray-700 rounded-lg p-6 hover:border-gray-500 transition-colors text-center">
               <input
@@ -115,11 +113,9 @@ export default function CreateProject() {
                 <img src="/img/uploadIcon.svg" alt="Upload file icon" />
                 <div className="text-sm text-gray-300">
                   {file ? (
-                    <span className="font-medium text-gray-200">
-                      {file.name}
-                    </span>
+                    <span className="font-medium text-gray-200">{file.name}</span>
                   ) : (
-                    <span>{t("selectFile")}</span>
+                    <span>{t('selectFile')}</span>
                   )}
                 </div>
               </div>
@@ -130,12 +126,10 @@ export default function CreateProject() {
             type="submit"
             disabled={isSubmitting}
             className={`w-full py-3 px-4 rounded-md font-medium text-white transition-colors ${
-              isSubmitting
-                ? "bg-gray-700 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+              isSubmitting ? 'bg-gray-700 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {isSubmitting ? t("loading") : t("submit")}
+            {isSubmitting ? t('loading') : t('submit')}
           </button>
         </form>
       </div>

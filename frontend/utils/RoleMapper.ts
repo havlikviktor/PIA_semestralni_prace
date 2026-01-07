@@ -1,8 +1,6 @@
-import { Role } from "@/constants/role";
+import { Role } from '@/constants/role';
 
-export const mapRoleToEnum = (
-  role: string
-): Role => {
+export const mapRoleToEnum = (role: string): Role => {
   if (!role) return Role.CUSTOMER;
   const normalized = role.toLowerCase();
   switch (normalized) {

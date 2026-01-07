@@ -1,26 +1,23 @@
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Project } from "@/types/project";
-import { Role } from "@/constants/role";
-import { useAuth } from "@/hooks/useAuth";
-import { getServerIp } from "@/utils/getServerIp";
-import Alert from "@/components/Alert";
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Project } from '@/types/project';
+import { Role } from '@/constants/role';
+import { useAuth } from '@/hooks/useAuth';
+import { getServerIp } from '@/utils/getServerIp';
+import Alert from '@/components/Alert';
 
 interface AdminEmailPanelProps {
   userRole?: Role;
   project: Project;
 }
 
-export default function AdminEmailPanel({
-  userRole,
-  project,
-}: AdminEmailPanelProps) {
-  const t = useTranslations("ProjectDetails");
+export default function AdminEmailPanel({ userRole, project }: AdminEmailPanelProps) {
+  const t = useTranslations('ProjectDetails');
   const { authFetch } = useAuth();
   const serverIp = getServerIp();
 
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
   const [sendToCustomer, setSendToCustomer] = useState(false);
   const [sendToTranslator, setSendToTranslator] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,8 +26,8 @@ export default function AdminEmailPanel({
     text: string;
     show: boolean;
   }>({
-    title: "",
-    text: "",
+    title: '',
+    text: '',
     show: false,
   });
 
@@ -49,8 +46,8 @@ export default function AdminEmailPanel({
 
     if (recipients.length === 0) {
       setAlert({
-        title: t("error"),
-        text: t("selectRecipient"),
+        title: t('error'),
+        text: t('selectRecipient'),
         show: true,
       });
       return;
@@ -58,8 +55,8 @@ export default function AdminEmailPanel({
 
     if (!subject || !message) {
       setAlert({
-        title: t("error"),
-        text: t("fillAllFields"),
+        title: t('error'),
+        text: t('fillAllFields'),
         show: true,
       });
       return;
@@ -68,9 +65,9 @@ export default function AdminEmailPanel({
     setLoading(true);
     try {
       await authFetch(`${serverIp}/email/send`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           to: recipients,
@@ -80,19 +77,19 @@ export default function AdminEmailPanel({
       });
 
       setAlert({
-        title: t("sendSuccess"),
-        text: t("emailSent"),
+        title: t('sendSuccess'),
+        text: t('emailSent'),
         show: true,
       });
-      setSubject("");
-      setMessage("");
+      setSubject('');
+      setMessage('');
       setSendToCustomer(false);
       setSendToTranslator(false);
     } catch (err) {
       console.error(err);
       setAlert({
-        title: t("error"),
-        text: t("emailError"),
+        title: t('error'),
+        text: t('emailError'),
         show: true,
       });
     } finally {
@@ -108,7 +105,7 @@ export default function AdminEmailPanel({
         show={alert.show}
         onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
       />
-      <h2 className="text-xl font-semibold">{t("adminEmailPanel")}</h2>
+      <h2 className="text-xl font-semibold">{t('adminEmailPanel')}</h2>
       <div className="space-y-2">
         <div className="flex space-x-4">
           <label className="flex items-center space-x-2">
@@ -119,7 +116,7 @@ export default function AdminEmailPanel({
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span>
-              {t("customer")} ({project.customer.email})
+              {t('customer')} ({project.customer.email})
             </span>
           </label>
           {project.translator && (
@@ -131,16 +128,14 @@ export default function AdminEmailPanel({
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span>
-                {t("translator")} ({project.translator.email})
+                {t('translator')} ({project.translator.email})
               </span>
             </label>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t("subject")}
-          </label>
+          <label className="block text-sm font-medium text-gray-700">{t('subject')}</label>
           <input
             type="text"
             value={subject}
@@ -150,9 +145,7 @@ export default function AdminEmailPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t("message")}
-          </label>
+          <label className="block text-sm font-medium text-gray-700">{t('message')}</label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -166,7 +159,7 @@ export default function AdminEmailPanel({
           disabled={loading}
           className="text-white  text-sm bg-gray-900 hover:bg-gray-700 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm font-medium rounded-md disabled:opacity-50"
         >
-          {loading ? t("sending") : t("sendEmail")}
+          {loading ? t('sending') : t('sendEmail')}
         </button>
       </div>
     </div>

@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "format": "prettier --write \"**/*.{js,ts,jsx,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,jsx,tsx,json,css,scss,md}\"",
     "dev": "next dev --webpack -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start",

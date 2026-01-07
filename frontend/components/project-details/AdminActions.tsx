@@ -1,9 +1,9 @@
-import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { ProjectState } from "@/constants/projectState";
-import { Role } from "@/constants/role";
-import { useStateTranslation } from "@/hooks/useStateTranslation";
-import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { ProjectState } from '@/constants/projectState';
+import { Role } from '@/constants/role';
+import { useStateTranslation } from '@/hooks/useStateTranslation';
+import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
 
 interface AdminActionsProps {
   userRole: Role | undefined;
@@ -11,12 +11,8 @@ interface AdminActionsProps {
   onUpdateState: (newState: ProjectState) => void;
 }
 
-export default function AdminActions({
-  userRole,
-  projectState,
-  onUpdateState,
-}: AdminActionsProps) {
-  const t = useTranslations("ProjectDetails");
+export default function AdminActions({ userRole, projectState, onUpdateState }: AdminActionsProps) {
+  const t = useTranslations('ProjectDetails');
   const translateState = useStateTranslation();
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [newState, setNewState] = useState<ProjectState | null>(null);
@@ -36,7 +32,7 @@ export default function AdminActions({
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-4">{t("adminActions")}</h2>
+      <h2 className="text-xl font-semibold mb-4">{t('adminActions')}</h2>
       <div className="flex flex-wrap gap-4 items-center">
         <div className="relative">
           <button
@@ -44,25 +40,23 @@ export default function AdminActions({
             className={`px-4 py-2 rounded font-medium transition-colors flex items-center gap-2 ${
               newState
                 ? ProjectStyleMapper.getStyle(newState)
-                : "border border-gray-300 hover:bg-gray-50"
+                : 'border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            {newState ? translateState(newState) : (projectState === ProjectState.APPROVED || projectState === ProjectState.REJECTED) ? t("moreOptions") : t("changeState")}
+            {newState
+              ? translateState(newState)
+              : projectState === ProjectState.APPROVED || projectState === ProjectState.REJECTED
+                ? t('moreOptions')
+                : t('changeState')}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className={`w-4 h-4 transition-transform ${
-                showMoreOptions ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform ${showMoreOptions ? 'rotate-180' : ''}`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </button>
 
@@ -76,7 +70,7 @@ export default function AdminActions({
                     setShowMoreOptions(false);
                   }}
                   className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${
-                    state === projectState ? "bg-blue-50 text-blue-600" : ""
+                    state === projectState ? 'bg-blue-50 text-blue-600' : ''
                   }`}
                   disabled={state === newState}
                 >
@@ -98,15 +92,15 @@ export default function AdminActions({
                 </button>
               ))}
               <button
-                  onClick={() => {
-                    setNewState(null);
-                    setShowMoreOptions(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-rose-600 font-medium border-b border-gray-100"
-                >
-                  {t("none")}
-                </button>
-              </div>
+                onClick={() => {
+                  setNewState(null);
+                  setShowMoreOptions(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-rose-600 font-medium border-b border-gray-100"
+              >
+                {t('none')}
+              </button>
+            </div>
           )}
         </div>
         {(projectState === ProjectState.APPROVED ||
@@ -118,7 +112,7 @@ export default function AdminActions({
             font-medium transition-colors"
             id="SubmitButton"
           >
-            {newState ? t("changeState") : t("closeProject")}
+            {newState ? t('changeState') : t('closeProject')}
           </button>
         )}
       </div>

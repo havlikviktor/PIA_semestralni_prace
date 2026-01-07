@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import { useRouter } from "../../../i18n/navigation";
-import { useStateTranslation } from "@/hooks/useStateTranslation";
-import { useRequireAuth } from "../../../hooks/useRequireAuth";
-import { useAuth } from "@/hooks/useAuth";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import LoginRedirecter from "@/components/LoginRedirecter";
-import { getServerIp } from "@/utils/getServerIp";
-import { FileState } from "@/constants/fileState";
-import { Project } from "@/types/project";
-import { ProjectStyleMapper } from "@/utils/ProjectStyleMapper";
-import { downloadProjectFile } from "@/utils/fileDownloader";
+import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+import { useRouter } from '../../../i18n/navigation';
+import { useStateTranslation } from '@/hooks/useStateTranslation';
+import { useRequireAuth } from '../../../hooks/useRequireAuth';
+import { useAuth } from '@/hooks/useAuth';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import LoginRedirecter from '@/components/LoginRedirecter';
+import { getServerIp } from '@/utils/getServerIp';
+import { FileState } from '@/constants/fileState';
+import { Project } from '@/types/project';
+import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
+import { downloadProjectFile } from '@/utils/fileDownloader';
 
 export default function Projects() {
-  const t = useTranslations("Projects");
+  const t = useTranslations('Projects');
   const translateState = useStateTranslation();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
   const { missingCredentials } = useRequireAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const serverIp = getServerIp();
 
   useEffect(() => {
@@ -31,9 +31,9 @@ export default function Projects() {
         const data = await authFetch(`${serverIp}/projects`);
         setProjects(data);
       } catch (err: any) {
-        if (err.message !== "Unauthorized") {
+        if (err.message !== 'Unauthorized') {
           console.error(err);
-          setError(t("failedToLoad"));
+          setError(t('failedToLoad'));
         }
       } finally {
         setIsLoading(false);
@@ -48,22 +48,18 @@ export default function Projects() {
   }
 
   if (isLoading) {
-    return <LoadingSpinner text={t("loading")} />;
+    return <LoadingSpinner text={t('loading')} />;
   }
 
-  const handleDownload = async (
-    e: React.MouseEvent,
-    projectId: number,
-    type: FileState
-  ) => {
+  const handleDownload = async (e: React.MouseEvent, projectId: number, type: FileState) => {
     e.stopPropagation();
 
     try {
       await downloadProjectFile(serverIp, projectId, type, authFetch);
     } catch (err: any) {
-      if (err.message !== "Unauthorized") {
+      if (err.message !== 'Unauthorized') {
         console.error(err);
-        setError(t("downloadError"));
+        setError(t('downloadError'));
       }
     }
   };
@@ -71,7 +67,7 @@ export default function Projects() {
   return (
     <div className="w-full bg-black text-white p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
+        <h1 className="text-3xl font-bold mb-8">{t('title')}</h1>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -80,22 +76,19 @@ export default function Projects() {
             <table className="w-full text-left">
               <thead className="bg-gray-800 text-gray-400 uppercase text-sm">
                 <tr>
-                  <th className="px-6 py-3">{t("number")}</th>
-                  <th className="px-6 py-3">{t("state")}</th>
-                  <th className="px-6 py-3">{t("language")}</th>
-                  <th className="px-6 py-3">{t("fileTitle")}</th>
-                  <th className="px-6 py-3">{t("createdAt")}</th>
-                  <th className="px-6 py-3">{t("actions")}</th>
+                  <th className="px-6 py-3">{t('number')}</th>
+                  <th className="px-6 py-3">{t('state')}</th>
+                  <th className="px-6 py-3">{t('language')}</th>
+                  <th className="px-6 py-3">{t('fileTitle')}</th>
+                  <th className="px-6 py-3">{t('createdAt')}</th>
+                  <th className="px-6 py-3">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {projects.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-4 text-center text-gray-500"
-                    >
-                      {t("noProjects")}
+                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                      {t('noProjects')}
                     </td>
                   </tr>
                 ) : (
@@ -103,38 +96,28 @@ export default function Projects() {
                     <tr
                       key={project.ProjectId}
                       className="hover:bg-gray-800/50 transition-colors cursor-pointer"
-                      onClick={() =>
-                        router.push(`/projects/${project.ProjectId}`)
-                      }
+                      onClick={() => router.push(`/projects/${project.ProjectId}`)}
                     >
                       <td className="px-6 py-4 text-gray-400">{index + 1}</td>
                       <td className="px-6 py-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${ProjectStyleMapper.getStyle(
-                            project.state
+                            project.state,
                           )}`}
                         >
                           {translateState(project.state)}
                         </span>
                       </td>
                       <td className="px-6 py-4">{project.languageCode}</td>
-                      <td className="px-6 py-4 font-medium">
-                        {project.fileName}
-                      </td>
+                      <td className="px-6 py-4 font-medium">{project.fileName}</td>
                       <td className="px-6 py-4 text-gray-400">
                         {new Date(project.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 flex gap-2">
                         <button
-                          onClick={(e) =>
-                            handleDownload(
-                              e,
-                              project.ProjectId,
-                              FileState.ORIGINAL
-                            )
-                          }
+                          onClick={(e) => handleDownload(e, project.ProjectId, FileState.ORIGINAL)}
                           className="text-gray-400 hover:text-white transition-colors"
-                          title={t("downloadOriginal")}
+                          title={t('downloadOriginal')}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -154,14 +137,10 @@ export default function Projects() {
                         {project.hasTranslatedFile && (
                           <button
                             onClick={(e) =>
-                              handleDownload(
-                                e,
-                                project.ProjectId,
-                                FileState.TRANSLATED
-                              )
+                              handleDownload(e, project.ProjectId, FileState.TRANSLATED)
                             }
                             className="text-green-400 hover:text-green-300 transition-colors"
-                            title={t("downloadTranslated")}
+                            title={t('downloadTranslated')}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

@@ -1,9 +1,9 @@
-import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { ProjectState } from "@/constants/projectState";
-import { Role } from "@/constants/role";
-import { Project } from "@/types/project";
-import { mapStateToEnum } from "@/utils/StateMapper";
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { ProjectState } from '@/constants/projectState';
+import { Role } from '@/constants/role';
+import { Project } from '@/types/project';
+import { mapStateToEnum } from '@/utils/StateMapper';
 
 interface TranslatorActionsProps {
   userRole: Role | undefined;
@@ -18,7 +18,7 @@ export default function TranslatorActions({
   onUpdateState,
   onUpload,
 }: TranslatorActionsProps) {
-  const t = useTranslations("ProjectDetails");
+  const t = useTranslations('ProjectDetails');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -41,10 +41,7 @@ export default function TranslatorActions({
     }
   };
 
-  if (
-    userRole !== Role.TRANSLATOR ||
-    mapStateToEnum(project.state) !== ProjectState.ASSIGNED
-  ) {
+  if (userRole !== Role.TRANSLATOR || mapStateToEnum(project.state) !== ProjectState.ASSIGNED) {
     return null;
   }
 
@@ -52,13 +49,11 @@ export default function TranslatorActions({
     <>
       <hr className="border-t border-gray-200 my-6" />
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold mb-2">{t("translatorActions")}</h2>
+        <h2 className="text-xl font-semibold mb-2">{t('translatorActions')}</h2>
 
         {/* File Upload */}
         <div className="bg-gray-50 p-4 rounded">
-          <label className="block mb-2 font-medium">
-            {t("uploadTranslation")}
-          </label>
+          <label className="block mb-2 font-medium">{t('uploadTranslation')}</label>
           <div className="flex gap-2">
             <input
               type="file"
@@ -75,7 +70,7 @@ export default function TranslatorActions({
               disabled={uploading || !selectedFile}
               className="bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
             >
-              {uploading ? t("uploading") : t("upload")}
+              {uploading ? t('uploading') : t('upload')}
             </button>
           </div>
         </div>
@@ -86,7 +81,7 @@ export default function TranslatorActions({
             onClick={() => onUpdateState(ProjectState.COMPLETED)}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full font-semibold"
           >
-            {t("completeProject")}
+            {t('completeProject')}
           </button>
         )}
       </div>

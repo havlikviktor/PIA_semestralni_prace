@@ -1,5 +1,4 @@
-import { UserInfo } from "./user";
-
+import { UserInfo } from './user';
 
 export interface Feedback {
   text: string;

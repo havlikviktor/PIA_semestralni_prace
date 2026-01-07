@@ -1,6 +1,6 @@
-import { UserInfo } from "../types/user";
-import { useRouter } from "../i18n/navigation";
-import { useState, useCallback } from "react";
+import { UserInfo } from '../types/user';
+import { useRouter } from '../i18n/navigation';
+import { useState, useCallback } from 'react';
 
 export const useAuth = () => {
   const router = useRouter();
@@ -8,25 +8,25 @@ export const useAuth = () => {
 
   const handleLoginSuccess = useCallback(
     (data: { accessToken: string; user: UserInfo }) => {
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
       if (data.user.isNewUser) {
-        router.push("/role-setup");
+        router.push('/role-setup');
       } else {
-        router.push("/dashboard");
+        router.push('/dashboard');
       }
     },
-    [router]
+    [router],
   );
 
   const getAuthHeaders = useCallback(() => {
-    const token = localStorage.getItem("accessToken");
-    const user = localStorage.getItem("user");
+    const token = localStorage.getItem('accessToken');
+    const user = localStorage.getItem('user');
 
     if (!token || !user) {
       setUnauthorized(true);
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     return { Authorization: `Bearer ${token}` };
@@ -35,7 +35,7 @@ export const useAuth = () => {
   const handleResponseStatus = useCallback(async (res: Response) => {
     if (res.status === 401) {
       setUnauthorized(true);
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     if (res.status === 204) {
@@ -44,42 +44,42 @@ export const useAuth = () => {
 
     if (!res.ok) {
       const text = await res.text();
-    let errorObj: any = { message: "Fetch error" };
+      let errorObj: any = { message: 'Fetch error' };
 
-    try {
-      if (text) {
-        errorObj = JSON.parse(text);
+      try {
+        if (text) {
+          errorObj = JSON.parse(text);
+        }
+      } catch (e) {
+        errorObj = { message: text };
       }
-    } catch (e) {
-      errorObj = { message: text };
-    }
 
-    throw errorObj;
+      throw errorObj;
     }
   }, []);
 
   const parseResponse = useCallback(
-    async (res: Response, responseType: "json" | "blob" | "text") => {
-      if (responseType === "blob") {
+    async (res: Response, responseType: 'json' | 'blob' | 'text') => {
+      if (responseType === 'blob') {
         const blob = await res.blob();
         return { blob, headers: res.headers };
       }
 
-      if (responseType === "text") {
+      if (responseType === 'text') {
         return await res.text();
       }
 
       const text = await res.text();
       return text ? JSON.parse(text) : {};
     },
-    []
+    [],
   );
 
   const authFetch = useCallback(
     async (
       url: string,
       options: RequestInit = {},
-      responseType: "json" | "blob" | "text" = "json"
+      responseType: 'json' | 'blob' | 'text' = 'json',
     ) => {
       try {
         const headers = getAuthHeaders();
@@ -96,14 +96,13 @@ export const useAuth = () => {
 
         return await parseResponse(res, responseType);
       } catch (e: any) {
-        if (e.message === "Unauthorized")
-          return;
+        if (e.message === 'Unauthorized') return;
 
-        console.error("Auth fetch error:", e);
+        console.error('Auth fetch error:', e);
         throw e;
       }
     },
-    [getAuthHeaders, handleResponseStatus, parseResponse]
+    [getAuthHeaders, handleResponseStatus, parseResponse],
   );
 
   return { handleLoginSuccess, authFetch, unauthorized };

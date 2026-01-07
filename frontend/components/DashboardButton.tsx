@@ -1,4 +1,4 @@
-import { Link } from "../i18n/navigation";
+import { Link } from '../i18n/navigation';
 
 interface DashboardButtonProps {
   title: string;
@@ -6,11 +6,7 @@ interface DashboardButtonProps {
   imageSrc: string;
 }
 
-export default function DashboardButton({
-  title,
-  href,
-  imageSrc,
-}: DashboardButtonProps) {
+export default function DashboardButton({ title, href, imageSrc }: DashboardButtonProps) {
   return (
     <Link
       href={href}
