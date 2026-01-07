@@ -11,9 +11,8 @@ import {
   ProjectEntity,
   ProjectState,
 } from './entities/project.entity';
-import { UserEntity, Role } from '../user/entities/user.entity';
+import { Role } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
-import { ProjectFeedbackEntity } from './entities/project-feedback.entity';
 import { EmailService } from '../email/email.service';
 import { Language } from '../user/entities/translator-language.entity';
 import { UserDomain } from 'src/domain-entites/user.domain';
@@ -25,7 +24,6 @@ export class ProjectService {
   constructor(
     @InjectRepository(ProjectEntity)
     private projectRepository: Repository<ProjectEntity>,
-    @InjectRepository(ProjectFeedbackEntity)
     private readonly userService: UserService,
     private readonly emailService: EmailService,
     private readonly projectMapper: ProjectMapper,
