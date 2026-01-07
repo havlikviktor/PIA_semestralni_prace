@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:15
+    container_name: pia_postgres_prod
+    restart: always
+    env_file:
+      - .env
+      - ./.env.backend.prod
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - db-data-prod:/var/lib/postgresql/data
+    networks:
+      - pia-network-prod
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: pia_backend_prod
+    restart: always
+    env_file:
+      - .env
+      - ./.env.backend.prod
+    ports:
+      - "${BACKEND_PORT}:3000"
+    depends_on:
+      - db
+    environment:
+      - MAIL_HOST=pia_mailhog_prod
+      - POSTGRES_HOST=pia_postgres_prod
+    networks:
+      - pia-network-prod
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: pia_frontend_prod
+    restart: always
+    env_file:
+      - .env
+      - ./.env.frontend.prod
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    depends_on:
+      - backend
+    networks:
+      - pia-network-prod
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: pia_mailhog_prod
+    restart: always
+    ports:
+      - "${MAIL_PORT}:1025"
+      - "${UI_PORT}:8025"
+    networks:
+      - pia-network-prod
+
+networks:
+  pia-network-prod:
+    driver: bridge
+
+volumes:
+  db-data-prod:

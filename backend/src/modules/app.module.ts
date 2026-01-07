@@ -11,7 +11,7 @@ import { EncryptionModule } from './encryption/encryption.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
+    ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     UserModule,
     ProjectModule,
