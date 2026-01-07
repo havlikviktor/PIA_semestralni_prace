@@ -120,7 +120,10 @@ export class ProjectController {
     description: 'Forbidden. Not allowed to upload.',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  @ApiResponse({ status: 422, description: 'Unprocessable Entity. File too large or missing.' })
+  @ApiResponse({
+    status: 422,
+    description: 'Unprocessable Entity. File too large or missing.',
+  })
   async uploadTranslatedFile(
     @Param('id') id: string,
     @UploadedFile(FileValidationPipe) file: Express.Multer.File,
@@ -172,7 +175,11 @@ export class ProjectController {
   @Post(':id/feedback')
   @ApiOperation({ summary: 'Add feedback to project' })
   @ApiResponse({ status: 201, description: 'Feedback added successfully.' })
-  @ApiResponse({ status: 400, description: 'Bad Request. Must be in state APPROVED or REJECTED to create feedback' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad Request. Must be in state APPROVED or REJECTED to create feedback',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({
     status: 403,

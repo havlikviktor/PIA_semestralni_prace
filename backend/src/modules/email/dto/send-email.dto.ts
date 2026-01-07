@@ -2,7 +2,10 @@ import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendEmailDto {
-  @ApiProperty({ description: 'List of recipient email addresses', example: ['user@example.com'] })
+  @ApiProperty({
+    description: 'List of recipient email addresses',
+    example: ['user@example.com'],
+  })
   @IsArray()
   @IsString({ each: true })
   @IsNotEmpty()
@@ -13,7 +16,10 @@ export class SendEmailDto {
   @IsNotEmpty()
   subject: string;
 
-  @ApiProperty({ description: 'Body text of the email', example: 'Hello, welcome to our platform.' })
+  @ApiProperty({
+    description: 'Body text of the email',
+    example: 'Hello, welcome to our platform.',
+  })
   @IsString()
   @IsNotEmpty()
   text: string;

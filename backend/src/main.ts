@@ -15,7 +15,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('PIA Translation System API')
-    .setDescription('API documentation for the PIA Translation Management System')
+    .setDescription(
+      'API documentation for the PIA Translation Management System',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();

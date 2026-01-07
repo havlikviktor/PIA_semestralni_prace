@@ -52,7 +52,9 @@ export class ProjectDomain {
       );
     }
     if (this.customer) {
-      throw new BadRequestException('Customer is already assigned to this project');
+      throw new BadRequestException(
+        'Customer is already assigned to this project',
+      );
     }
 
     this.customer = customer;

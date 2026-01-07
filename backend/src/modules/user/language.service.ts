@@ -11,9 +11,7 @@ export class LanguageService {
     private readonly languageRepository: Repository<TranslatorLanguage>,
   ) {}
 
-  async updateTranslatorLanguages(
-    userDomain: UserDomain)
-    {
+  async updateTranslatorLanguages(userDomain: UserDomain) {
     if (userDomain.isTranslator() && userDomain.validateLanguages()) {
       await this.languageRepository.delete({
         translator: { id: userDomain.id },

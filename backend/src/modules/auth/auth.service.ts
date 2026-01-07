@@ -17,7 +17,10 @@ import { UserInfoDto } from '../user/dto/user-info.dto';
 
 @Injectable()
 export class AuthService {
-  private pendingTickets = new Map<string, { token: string; user: UserDomain }>();
+  private pendingTickets = new Map<
+    string,
+    { token: string; user: UserDomain }
+  >();
 
   constructor(
     private jwtService: JwtService,
@@ -50,11 +53,13 @@ export class AuthService {
     this.pendingTickets.delete(ticket);
     return {
       accessToken: data.token,
-      user : this.userMapper.toDto(data.user)
+      user: this.userMapper.toDto(data.user),
     };
   }
 
-  async signup(createUserDto: CreateUserDto): Promise<{ accessToken: string; user: UserInfoDto }> {
+  async signup(
+    createUserDto: CreateUserDto,
+  ): Promise<{ accessToken: string; user: UserInfoDto }> {
     const userDomain = this.userMapper.toDomainFromCreateDto(createUserDto);
     const user = await this.userService.create(userDomain);
 
@@ -65,7 +70,9 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; user: UserInfoDto }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; user: UserInfoDto }> {
     const user = await this.userService.findByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('User with this email does not exist');
