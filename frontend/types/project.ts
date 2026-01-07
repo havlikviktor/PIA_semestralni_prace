@@ -11,7 +11,6 @@ export interface Project {
   languageCode: string;
   state: string;
   createdAt: string;
-  fileSuffix: string;
   customer: UserInfo;
   translator?: UserInfo;
   feedback?: Feedback;

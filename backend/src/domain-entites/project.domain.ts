@@ -21,7 +21,6 @@ export class ProjectDomain {
   fileName: string;
   originalFile: Buffer;
   translatedFile?: Buffer;
-  fileSuffix: string;
   state: ProjectState;
   createdAt: Date;
   feedback?: FeedbackDomain;
@@ -38,7 +37,6 @@ export class ProjectDomain {
         'utf8',
       );
       this.fileName = originalName;
-      this.fileSuffix = originalName.substring(originalName.lastIndexOf('.'));
     }
   }
 

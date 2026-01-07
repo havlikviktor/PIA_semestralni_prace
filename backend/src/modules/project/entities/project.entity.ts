@@ -50,9 +50,6 @@ export class ProjectEntity {
   @Column({ type: 'bytea', nullable: true })
   translatedFile?: Buffer;
 
-  @Column()
-  fileSuffix: string;
-
   @Column({ default: ProjectState.CREATED })
   state: ProjectState;
 

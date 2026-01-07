@@ -21,7 +21,6 @@ export class ProjectMapper {
       fileName: entity.fileName,
       originalFile: entity.originalFile,
       translatedFile: entity.translatedFile,
-      fileSuffix: entity.fileSuffix,
       state: entity.state,
       createdAt: entity.createdAt,
       hasTranslatedFile: hasTranslatedFile,
@@ -92,7 +91,6 @@ export class ProjectMapper {
       state: domain.state,
       createdAt: domain.createdAt,
       fileName: domain.fileName,
-      fileSuffix: domain.fileSuffix,
       customer: domain.customer
         ? {
             id: domain.customer.id,

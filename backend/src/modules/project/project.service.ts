@@ -186,7 +186,6 @@ export class ProjectService {
         state: true,
         createdAt: true,
         fileName: true,
-        fileSuffix: true,
         customer: {
           id: true,
           name: true,
@@ -220,7 +219,6 @@ export class ProjectService {
         ProjectId: true,
         originalFile: true,
         translatedFile: true,
-        fileSuffix: true,
         fileName: true,
         customer: {
           id: true,
