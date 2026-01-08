@@ -39,7 +39,7 @@ export default function ActiveProjects() {
         const filteredProjects = data.filter((project) => {
           const projectState = mapStateToEnum(project.state);
 
-          if (userRole === Role.CUSTOMER) {
+          if (userRole === Role.CUSTOMER || userRole === Role.ADMINISTRATOR) {
             return (
               projectState === ProjectState.COMPLETED ||
               ((projectState === ProjectState.APPROVED || projectState === ProjectState.REJECTED) &&

@@ -45,7 +45,7 @@ export class ProjectDomain {
     if (!customer) {
       throw new BadRequestException('Customer not provided');
     }
-    if (customer.role !== Role.CUSTOMER) {
+    if (customer.role !== Role.CUSTOMER && customer.role !== Role.ADMINISTRATOR) {
       throw new BadRequestException(
         `User with ID ${customer.id} is not a customer`,
       );
