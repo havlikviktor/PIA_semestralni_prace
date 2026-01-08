@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 4000
+EXPOSE 3000
 
 ENV IS_PROD=false
 CMD ["npm", "run", "dev"]

@@ -180,14 +180,12 @@ export default function ProjectPage() {
 
   return (
     <div className=" flex items-center justify-center bg-black">
-      {userRole !== Role.ADMINISTRATOR && (
         <Alert
           title={alert.title}
           text={alert.text}
           show={alert.show}
           onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
         />
-      )}
       <div className="p-6 pt-10 text-black w-full max-w-3xl">
         <h1 className="text-2xl text-gray-200 font-bold mb-4">{t('title')}</h1>
         <div className="bg-white shadow rounded-lg p-6 space-y-6">
