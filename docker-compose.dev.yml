@@ -12,6 +12,18 @@ services:
     networks:
       - sem-network
 
+  test-db:
+    image: postgres:15
+    container_name: pia_postgres_test
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5433:5432"
+    networks:
+      - sem-network
+
   backend:
     build:
       context: ./backend
@@ -58,8 +70,8 @@ services:
     image: mailhog/mailhog:latest
     container_name: pia_mailhog_dev
     ports:
-      - "${MAIL_PORT}:1025"  # SMTP server
-      - "${UI_PORT}:8025"  # Web UI
+      - "${MAIL_PORT}:1025" # SMTP server
+      - "${UI_PORT}:8025" # Web UI
     networks:
       - sem-network
 
