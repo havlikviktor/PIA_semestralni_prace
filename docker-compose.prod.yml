@@ -1,5 +1,5 @@
 services:
-  db:
+  db-prod:
     image: postgres:15
     container_name: pia_postgres_prod
     restart: always
@@ -13,7 +13,7 @@ services:
     networks:
       - pia-network-prod
 
-  backend:
+  backend-prod:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
@@ -25,14 +25,14 @@ services:
     ports:
       - "${BACKEND_PORT}:3000"
     depends_on:
-      - db
+      - db-prod
     environment:
-      - MAIL_HOST=pia_mailhog_prod
-      - POSTGRES_HOST=pia_postgres_prod
+      - MAIL_HOST=mailhog-prod
+      - POSTGRES_HOST=db-prod
     networks:
       - pia-network-prod
 
-  frontend:
+  frontend-prod:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
@@ -44,11 +44,11 @@ services:
     ports:
       - "${FRONTEND_PORT}:3000"
     depends_on:
-      - backend
+      - backend-prod
     networks:
       - pia-network-prod
 
-  mailhog:
+  mailhog-prod:
     image: mailhog/mailhog:latest
     container_name: pia_mailhog_prod
     restart: always

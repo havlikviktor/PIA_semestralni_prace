@@ -1,5 +1,5 @@
 services:
-  db:
+  db-dev:
     image: postgres:15
     container_name: pia_postgres_dev
     env_file:
@@ -10,23 +10,12 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - sem-network
+      - pia-network-dev
 
-  test-db:
-    image: postgres:15
-    container_name: pia_postgres_test
-    environment:
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword
-      POSTGRES_DB: testdb
-    ports:
-      - "5433:5432"
-    networks:
-      - sem-network
-
-  backend:
+  backend-dev:
     build:
       context: ./backend
+      dockerfile: Dockerfile.dev
     container_name: pia_backend_dev
     env_file:
       - .env
@@ -39,16 +28,17 @@ services:
     ports:
       - "${BACKEND_PORT}:3000"
     depends_on:
-      - db
+      - db-dev
     environment:
-      - MAIL_HOST=pia_mailhog_dev
-      - POSTGRES_HOST=pia_postgres_dev
+      - MAIL_HOST=mailhog-dev
+      - POSTGRES_HOST=db-dev
     networks:
-      - sem-network
+      - pia-network-dev
 
-  frontend:
+  frontend-dev:
     build:
       context: ./frontend
+      dockerfile: Dockerfile.dev
     container_name: pia_frontend_dev
     env_file:
       - .env
@@ -62,21 +52,22 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     depends_on:
-      - backend
+      - backend-dev
     networks:
-      - sem-network
+      - pia-network-dev
 
-  mailhog:
+  mailhog-dev:
     image: mailhog/mailhog:latest
     container_name: pia_mailhog_dev
     ports:
       - "${MAIL_PORT}:1025" # SMTP server
       - "${UI_PORT}:8025" # Web UI
     networks:
-      - sem-network
+      - pia-network-dev
 
 volumes:
   db-data:
 
 networks:
-  sem-network:
+  pia-network-dev:
+    driver: bridge
