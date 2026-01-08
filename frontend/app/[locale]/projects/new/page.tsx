@@ -1,9 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useState } from 'react';
 import { useRouter } from '../../../../i18n/navigation';
-import { Language, LANGUAGE_LABELS } from '../../../../constants/languages';
+import { Language } from '../../../../constants/languages';
 import { useRequireAuth } from '../../../../hooks/useRequireAuth';
 import { useAuth } from '@/hooks/useAuth';
 import LoginRedirecter from '@/components/LoginRedirecter';
@@ -12,6 +12,7 @@ import { getServerIp } from '@/utils/getServerIp';
 
 export default function CreateProject() {
   const t = useTranslations('CreateProject');
+  const locale = useLocale();
   const router = useRouter();
   const { user, isLoading, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
@@ -91,9 +92,11 @@ export default function CreateProject() {
               onChange={(e) => setSelectedLanguage(e.target.value as Language)}
               className="w-full bg-gray-800 border border-gray-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {Object.entries(LANGUAGE_LABELS).map(([code, label]) => (
-                <option key={code} value={code}>
-                  {label}
+              {Object.values(Language).map((lang) => (
+                <option key={lang} value={lang}>
+                  {new Intl.DisplayNames([locale], {
+                    type: 'language',
+                  }).of(lang)}
                 </option>
               ))}
             </select>
