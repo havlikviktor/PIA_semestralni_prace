@@ -28,6 +28,7 @@ export default function AdminActions({ userRole, projectState, onUpdateState }: 
     if (state === projectState) return;
     onUpdateState(state);
     setShowMoreOptions(false);
+    setNewState(null);
   };
 
   return (

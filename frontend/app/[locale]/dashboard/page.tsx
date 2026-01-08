@@ -27,15 +27,14 @@ export default function Dashboard() {
       <p className="text-xl mb-12 text-gray-400">{t('loggedIn')}</p>
 
       <div className="flex flex-wrap justify-center gap-4 w-full max-w-5xl">
-        {(userRole === Role.ADMINISTRATOR ||
-          userRole === Role.CUSTOMER ||
+        {(userRole === Role.CUSTOMER ||
           userRole === Role.TRANSLATOR) && (
           <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton title={t('projects')} href="/projects" imageSrc="/img/projects.png" />
           </div>
         )}
 
-        {(userRole === Role.ADMINISTRATOR || userRole === Role.CUSTOMER) && (
+        {(userRole === Role.CUSTOMER) && (
           <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton
               title={t('newProject')}
@@ -45,8 +44,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {(userRole === Role.ADMINISTRATOR ||
-          userRole === Role.CUSTOMER ||
+        {(userRole === Role.CUSTOMER ||
           userRole === Role.TRANSLATOR) && (
           <div className="w-[calc(50%-8px)] sm:w-36 md:w-44 lg:w-52">
             <DashboardButton

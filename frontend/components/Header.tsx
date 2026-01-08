@@ -113,18 +113,6 @@ export default function Header() {
                       {t('newProject')}
                     </Link>
                   )}
-                  {userRole === Role.ADMINISTRATOR && (
-                    <Link
-                      href="/projects/manage"
-                      className={`text-sm font-medium ${
-                        pathname === '/projects/manage'
-                          ? 'text-white underline underline-offset-4'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {t('manageProjects')}
-                    </Link>
-                  )}
                   <Link
                     href="/projects/active"
                     className={`text-sm font-medium ${
@@ -137,6 +125,18 @@ export default function Header() {
                       ? t('projectsToTranslate')
                       : t('projectsToApproval')}
                   </Link>
+                  {userRole === Role.ADMINISTRATOR && (
+                    <Link
+                      href="/projects/manage"
+                      className={`text-sm font-medium ${
+                        pathname === '/projects/manage'
+                          ? 'text-white underline underline-offset-4'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {t('manageProjects')}
+                    </Link>
+                  )}
                 </nav>
 
                 <button

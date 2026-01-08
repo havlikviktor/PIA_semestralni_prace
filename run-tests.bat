@@ -19,10 +19,10 @@ pushd "%~dp0backend"
 call npm test
 if errorlevel 1 (
     echo.
-    call :echoRed "!!! Unit tests FAILED. Skipping E2E. !!!"
+    call :echoRed " Unit tests FAILED. Skipping E2E. "
     popd
     set "EXIT_CODE=1"
-    goto :cleanup
+    exit /b %EXIT_CODE%
 )
 popd
 
