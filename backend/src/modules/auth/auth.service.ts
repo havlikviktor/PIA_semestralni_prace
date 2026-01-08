@@ -40,8 +40,14 @@ export class AuthService {
 
   generateTicket(token: string, user: UserDomain): string {
     const ticket = uuidv4();
+    const timeout = setTimeout(
+      () => this.pendingTickets.delete(ticket),
+      2 * 60 * 1000,
+    );
+    // Prevent keeping the process alive (important for Jest E2E runs)
+    (timeout as any).unref?.();
+
     this.pendingTickets.set(ticket, { token, user });
-    setTimeout(() => this.pendingTickets.delete(ticket), 2 * 60 * 1000);
     return ticket;
   }
 

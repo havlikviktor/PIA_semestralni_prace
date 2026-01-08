@@ -8,6 +8,8 @@ services:
       - "${POSTGRES_PORT}:5432"
     tmpfs:
       - /var/lib/postgresql/data
+    logging:
+      driver: "none"
     networks:
       - pia-network-test
 
@@ -34,6 +36,8 @@ services:
     container_name: pia_mailhog_test
     ports:
       - "${MAIL_PORT}:1025" # SMTP server
+    logging:
+      driver: "none"
     networks:
       - pia-network-test
 
