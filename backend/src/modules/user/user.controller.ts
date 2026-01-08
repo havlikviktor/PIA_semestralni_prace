@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   Req,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
@@ -24,7 +25,25 @@ import { UserInfoDto } from './dto/user-info.dto';
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userMapper: UserMapper,
+  ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Get current user info' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current user info retrieved successfully.',
+    type: UserInfoDto,
+  })
+  async getMe(@Req() req) {
+    const user = await this.userService.findOne(req.user.sub);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.userMapper.toDto(user);
+  }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update user role' })

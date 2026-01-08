@@ -1,0 +1,42 @@
+services:
+  db-test:
+    image: postgres:15
+    env_file:
+      - .env.test
+    container_name: pia_postgres_test
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - pia-network-test
+
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: pia_backend_test
+    env_file:
+      - .env.test
+    environment:
+      - MAIL_HOST=mailhog-test
+      - POSTGRES_HOST=db-test
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    depends_on:
+      - db-test
+      - mailhog-test
+    command: npm run test:e2e
+    networks:
+      - pia-network-test
+
+  mailhog-test:
+    image: mailhog/mailhog:latest
+    container_name: pia_mailhog_test
+    ports:
+      - "${MAIL_PORT}:1025" # SMTP server
+    networks:
+      - pia-network-test
+
+networks:
+  pia-network-test:
+    driver: bridge
