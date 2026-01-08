@@ -30,7 +30,7 @@ export class AuthService {
     private readonly userMapper: UserMapper,
   ) {}
 
-  signToken(user: UserDomain): string {
+  signToken(user: Pick<UserDomain, 'id' | 'name' | 'role'>): string {
     return this.jwtService.sign({
       sub: user.id,
       name: user.name,

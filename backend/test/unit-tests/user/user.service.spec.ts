@@ -13,6 +13,7 @@ import {
 import { LanguageService } from '../../../src/modules/user/language.service';
 import { EncryptionService } from '../../../src/modules/encryption/encryption.service';
 import { UserMapper } from '../../../src/modules/user/user.mapper';
+import { AuthService } from '../../../src/modules/auth/auth.service';
 
 describe('UserService', () => {
   const userRepository = {
@@ -39,6 +40,10 @@ describe('UserService', () => {
     toDto: jest.fn((x) => ({ id: x.id, role: x.role })),
   } as unknown as UserMapper;
 
+  const authService = {
+    signToken: jest.fn(() => 'test-access-token'),
+  } as unknown as AuthService;
+
   let service: UserService;
 
   beforeEach(async () => {
@@ -49,6 +54,7 @@ describe('UserService', () => {
         UserService,
         { provide: getRepositoryToken(UserEntity), useValue: userRepository },
         { provide: LanguageService, useValue: languageService },
+        { provide: AuthService, useValue: authService },
         { provide: EncryptionService, useValue: encryptionService },
         { provide: UserMapper, useValue: userMapper },
       ],

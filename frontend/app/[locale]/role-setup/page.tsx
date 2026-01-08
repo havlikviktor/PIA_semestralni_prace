@@ -62,7 +62,13 @@ function RoleSetupContent() {
       });
 
       if (updatedUser) {
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        if (updatedUser.accessToken) {
+          localStorage.setItem('accessToken', updatedUser.accessToken);
+        }
+
+        // Store user without token field
+        const { accessToken, ...userToStore } = updatedUser;
+        localStorage.setItem('user', JSON.stringify(userToStore));
       }
 
       router.push('/dashboard');

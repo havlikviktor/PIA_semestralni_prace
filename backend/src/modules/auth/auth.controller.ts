@@ -17,7 +17,7 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from '../user/dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { UserInfoDto } from '../user/dto/user-info.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -33,7 +33,7 @@ export class AuthController {
   @ApiResponse({
     status: 201,
     description: 'The user has been successfully created.',
-    type: UserInfoDto,
+    type: AuthResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 409, description: 'Conflict. Email already exists.' })
@@ -47,7 +47,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'User logged in successfully.',
-    type: UserInfoDto,
+    type: AuthResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -86,7 +86,11 @@ export class AuthController {
   @ApiBody({
     schema: { type: 'object', properties: { ticket: { type: 'string' } } },
   })
-  @ApiResponse({ status: 201, description: 'Ticket exchanged successfully.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Ticket exchanged successfully.',
+    type: AuthResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Invalid or expired ticket.' })
   async exchangeTicket(@Body('ticket') ticket: string) {
     return this.authService.exchangeTicket(ticket);

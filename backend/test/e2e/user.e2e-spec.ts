@@ -9,6 +9,7 @@ import {
   seedUser,
   truncateAllTables,
 } from './utils/e2e-utils';
+import { access } from 'fs';
 
 describe('User (e2e)', () => {
   const base = '/user';
@@ -135,8 +136,11 @@ describe('User (e2e)', () => {
 
     expect(res.body).toEqual(
       expect.objectContaining({
+        accessToken: expect.any(String),
+        user: expect.objectContaining({
         id: target.id,
         role: Role.TRANSLATOR,
+      }),
       }),
     );
   });

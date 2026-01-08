@@ -1,6 +1,8 @@
 import {
   ConflictException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,12 +16,15 @@ import { UserDomain } from '../../domain-entites/user.domain';
 import { UserMapper } from './user.mapper';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UserInfoDto } from './dto/user-info.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    @Inject(forwardRef(() => AuthService))
+    private authService: AuthService,
     private readonly languageService: LanguageService,
     private readonly encryptionService: EncryptionService,
     private readonly userMapper: UserMapper,
@@ -112,7 +117,7 @@ export class UserService {
     id: number,
     requesterRole: Role,
     updateUserRoleDto: UpdateUserRoleDto,
-  ): Promise<UserInfoDto> {
+  ): Promise<{ accessToken: string; user: UserInfoDto }> {
     let userDomainUpdate = new UserDomain({ id: id, ...updateUserRoleDto });
     if (
       userDomainUpdate.role === Role.ADMINISTRATOR &&
@@ -136,6 +141,15 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    return this.userMapper.toDto(updatedUser);
+    const accessToken = this.authService.signToken({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      role: updatedUser.role,
+    });
+
+    return {
+      accessToken: accessToken,
+      user: this.userMapper.toDto(updatedUser),
+    };
   }
 }

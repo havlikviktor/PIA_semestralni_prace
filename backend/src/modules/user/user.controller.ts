@@ -20,6 +20,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UserInfoDto } from './dto/user-info.dto';
+import { AuthResponseDto } from '../auth/dto/auth-response.dto';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -39,10 +40,7 @@ export class UserController {
   })
   async getMe(@Req() req) {
     const user = await this.userService.findOne(req.user.sub);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return this.userMapper.toDto(user);
+    return this.userMapper.toDto(user!);
   }
 
   @Patch(':id')
@@ -50,7 +48,7 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: 'User role updated successfully.',
-    type: UserInfoDto,
+    type: AuthResponseDto,
   })
   @ApiResponse({
     status: 403,
