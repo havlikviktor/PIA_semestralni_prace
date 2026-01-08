@@ -53,4 +53,3 @@ export class InitialSchema20260108000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE "translator_language"`);
   }
 }
-

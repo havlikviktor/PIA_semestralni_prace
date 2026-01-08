@@ -20,6 +20,15 @@ export enum ProjectState {
   CLOSED = 'closed',
 }
 
+export const ProjectStateOrder: Record<ProjectState, number> = {
+  [ProjectState.CREATED]: 0,
+  [ProjectState.ASSIGNED]: 1,
+  [ProjectState.COMPLETED]: 2,
+  [ProjectState.APPROVED]: 3,
+  [ProjectState.REJECTED]: 3,
+  [ProjectState.CLOSED]: 4,
+};
+
 export enum FileType {
   ORIGINAL = 'original',
   TRANSLATED = 'translated',
@@ -48,7 +57,7 @@ export class ProjectEntity {
   originalFile: Buffer;
 
   @Column({ type: 'bytea', nullable: true })
-  translatedFile?: Buffer;
+  translatedFile?: Buffer | null;
 
   @Column({ default: ProjectState.CREATED })
   state: ProjectState;

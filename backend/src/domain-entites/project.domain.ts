@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
   ProjectState,
+  ProjectStateOrder,
   FileType,
 } from '../modules/project/entities/project.entity';
 import { UserDomain } from './user.domain';
@@ -16,14 +17,14 @@ import { FeedbackDomain } from './feedback.domain';
 export class ProjectDomain {
   ProjectId: number;
   customer: UserDomain;
-  translator?: UserDomain;
+  translator?: UserDomain | null;
   languageCode: Language;
   fileName: string;
   originalFile: Buffer;
-  translatedFile?: Buffer;
+  translatedFile?: Buffer | null;
   state: ProjectState;
   createdAt: Date;
-  feedback?: FeedbackDomain;
+  feedback?: FeedbackDomain | null;
   hasTranslatedFile?: boolean;
 
   constructor(init?: Partial<ProjectDomain>) {
@@ -97,6 +98,20 @@ export class ProjectDomain {
         );
       }
     }
+  }
+
+  planStateUpdate(newState: ProjectState): {
+    deleteFeedback: boolean;
+    deleteTranslatedFile: boolean;
+    findNewTranslator: boolean;
+  } {
+    return {
+      deleteFeedback:
+        ProjectStateOrder[newState] <= ProjectStateOrder[ProjectState.COMPLETED],
+      deleteTranslatedFile:
+        ProjectStateOrder[newState] <= ProjectStateOrder[ProjectState.ASSIGNED],
+      findNewTranslator: newState === ProjectState.CREATED,
+    };
   }
 
   private checkTranslatorStateEdit(newState: ProjectState) {

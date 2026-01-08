@@ -2,6 +2,8 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,12 +20,15 @@ import { Language } from '../user/entities/translator-language.entity';
 import { UserDomain } from 'src/domain-entites/user.domain';
 import { ProjectMapper } from './project.mapper';
 import { ProjectDomain } from 'src/domain-entites/project.domain';
+import { FeedbackService } from './feedback.service';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(ProjectEntity)
     private projectRepository: Repository<ProjectEntity>,
+    @Inject(forwardRef(() => FeedbackService))
+    private readonly feedbackService: FeedbackService,
     private readonly userService: UserService,
     private readonly emailService: EmailService,
     private readonly projectMapper: ProjectMapper,
@@ -255,9 +260,35 @@ export class ProjectService {
     const project = await this.findProjectById(projectId);
     project.checkStateEditAccess(userId, userRole, newState);
 
-    await this.projectRepository.update(projectId, { state: newState });
+    const plan = project.planStateUpdate(newState);
+    project.state = newState;
 
-    if (newState === ProjectState.COMPLETED && project?.customer?.email) {
+    if (plan.findNewTranslator) {
+      const translator = await this.userService.findCapableTranslator(
+        project.languageCode,
+      );
+
+      if (translator) {
+        project.translator = translator;
+        project.state = ProjectState.ASSIGNED;
+      } else {
+        project.translator = null;
+        project.state = ProjectState.CLOSED;
+      }
+    }
+
+    if (plan.deleteTranslatedFile) {
+      project.translatedFile = null;
+    }
+
+    if (plan.deleteFeedback) {
+      await this.feedbackService.deleteFeedback(projectId);
+    }
+
+    const entityToSave = this.projectMapper.toEntity(project);
+    await this.projectRepository.update(projectId, entityToSave);
+
+    if (project.state === ProjectState.COMPLETED) {
       await this.emailService.sendProjectCompletedEmail(
         project.customer.email,
         project.fileName,

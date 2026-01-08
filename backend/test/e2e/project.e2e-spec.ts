@@ -405,4 +405,115 @@ describe('Projects (e2e)', () => {
       .send({ text: 'Duplicate' })
       .expect(400);
   });
+
+  it('PATCH /projects/:id to COMPLETED clears feedback (admin)', async () => {
+    const { ids, tokens } = await seedUsersAndTokens();
+    const projectId = await createAssignedProject(
+      ids.customer.id,
+      tokens.customerToken,
+    );
+
+    // complete + approve then feedback
+    await request(app.getHttpServer())
+      .post(`${base}/${projectId}/file`)
+      .set(bearer(tokens.translatorToken))
+      .attach('translatedFile', translatedFile, {
+        filename: 'translated.txt',
+        contentType: 'text/plain',
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`${base}/${projectId}`)
+      .set(bearer(tokens.translatorToken))
+      .send({ state: ProjectState.COMPLETED })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`${base}/${projectId}`)
+      .set(bearer(tokens.customerToken))
+      .send({ state: ProjectState.APPROVED })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post(`${base}/${projectId}/feedback`)
+      .set(bearer(tokens.customerToken))
+      .send({ text: 'Great translation' })
+      .expect(201);
+
+    // admin can set COMPLETED and feedback must be cleared
+    await request(app.getHttpServer())
+      .patch(`${base}/${projectId}`)
+      .set(bearer(tokens.adminToken))
+      .send({ state: ProjectState.COMPLETED })
+      .expect(200);
+
+    const detail = await request(app.getHttpServer())
+      .get(`${base}/${projectId}`)
+      .set(bearer(tokens.customerToken))
+      .expect(200);
+
+    expect(detail.body.state).toBe(ProjectState.COMPLETED);
+    expect(detail.body.feedback).toBeNull();
+  });
+
+  it('PATCH /projects/:id to ASSIGNED clears translated file + feedback and reassigns translator (admin)', async () => {
+    const { ids, tokens } = await seedUsersAndTokens();
+    const projectId = await createAssignedProject(
+      ids.customer.id,
+      tokens.customerToken,
+    );
+
+    // upload + complete + approve + feedback
+    await request(app.getHttpServer())
+      .post(`${base}/${projectId}/file`)
+      .set(bearer(tokens.translatorToken))
+      .attach('translatedFile', translatedFile, {
+        filename: 'translated.txt',
+        contentType: 'text/plain',
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`${base}/${projectId}`)
+      .set(bearer(tokens.translatorToken))
+      .send({ state: ProjectState.COMPLETED })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`${base}/${projectId}`)
+      .set(bearer(tokens.customerToken))
+      .send({ state: ProjectState.APPROVED })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .post(`${base}/${projectId}/feedback`)
+      .set(bearer(tokens.customerToken))
+      .send({ text: 'Great translation' })
+      .expect(201);
+
+    const reassigned = await request(app.getHttpServer())
+      .patch(`${base}/${projectId}`)
+      .set(bearer(tokens.adminToken))
+      .send({ state: ProjectState.ASSIGNED })
+      .expect(200);
+
+    // translator exists in fixtures, so it should be assigned again
+    expect(reassigned.body.state).toBe(ProjectState.ASSIGNED);
+
+    const detail = await request(app.getHttpServer())
+      .get(`${base}/${projectId}`)
+      .set(bearer(tokens.customerToken))
+      .expect(200);
+
+    expect(detail.body.state).toBe(ProjectState.ASSIGNED);
+    expect(detail.body.feedback).toBeNull();
+
+    // translated file should be cleared -> 404
+    await request(app.getHttpServer())
+      .get(`${base}/${projectId}/file`)
+      .query({ type: 'translated' })
+      .set(bearer(tokens.customerToken))
+      .expect(404);
+  });
 });

@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env.backend.prod') }); // for local run
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });              // for local run
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') }); // for local run
 
 export default new DataSource({
   type: 'postgres',

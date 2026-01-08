@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProjectFeedbackEntity } from './entities/project-feedback.entity';
 import { Repository } from 'typeorm/repository/Repository';
@@ -12,6 +17,7 @@ export class FeedbackService {
   constructor(
     @InjectRepository(ProjectFeedbackEntity)
     private feedbackRepository: Repository<ProjectFeedbackEntity>,
+    @Inject(forwardRef(() => ProjectService))
     private readonly projectService: ProjectService,
     private readonly feedbackMapper: FeedbackMapper,
   ) {}
@@ -48,5 +54,9 @@ export class FeedbackService {
     const savedEntity = await this.feedbackRepository.save(entity);
 
     return this.feedbackMapper.toDomain(savedEntity);
+  }
+
+  async deleteFeedback(projectId: number) {
+    await this.feedbackRepository.delete({ projectId });
   }
 }

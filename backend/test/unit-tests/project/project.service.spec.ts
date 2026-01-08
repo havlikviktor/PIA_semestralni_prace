@@ -1,5 +1,3 @@
-import { Test } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { ProjectService } from '../../../src/modules/project/project.service';
 import {
@@ -10,6 +8,7 @@ import { UserService } from '../../../src/modules/user/user.service';
 import { EmailService } from '../../../src/modules/email/email.service';
 import { ProjectMapper } from '../../../src/modules/project/project.mapper';
 import { Role } from '../../../src/modules/user/entities/user.entity';
+import { FeedbackService } from '../../../src/modules/project/feedback.service';
 
 describe('ProjectService', () => {
   const repo = {
@@ -17,8 +16,13 @@ describe('ProjectService', () => {
     update: jest.fn(),
     find: jest.fn(),
     findOne: jest.fn(),
+    preload: jest.fn(async (x) => x),
     createQueryBuilder: jest.fn(),
   };
+
+  const feedbackService = {
+    deleteFeedback: jest.fn(),
+  } as unknown as FeedbackService;
 
   const userService = {
     findOne: jest.fn(),
@@ -43,17 +47,13 @@ describe('ProjectService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
 
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        ProjectService,
-        { provide: getRepositoryToken(ProjectEntity), useValue: repo },
-        { provide: UserService, useValue: userService },
-        { provide: EmailService, useValue: emailService },
-        { provide: ProjectMapper, useValue: projectMapper },
-      ],
-    }).compile();
-
-    service = moduleRef.get(ProjectService);
+    service = new ProjectService(
+      repo as any,
+      feedbackService as any,
+      userService as any,
+      emailService as any,
+      projectMapper as any,
+    );
   });
 
   it('create sends assigned email when translator found', async () => {
@@ -129,5 +129,144 @@ describe('ProjectService', () => {
     await expect(service.findProjectById(123)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('updateState deletes feedback when setting COMPLETED (admin)', async () => {
+    const projectDomain: any = {
+      ProjectId: 1,
+      state: ProjectState.APPROVED,
+      customer: { email: 'cust@x' },
+      fileName: 'file',
+      languageCode: 'en',
+      checkStateEditAccess: jest.fn(),
+      planStateUpdate: jest.fn(() => ({
+        deleteFeedback: true,
+        deleteTranslatedFile: false,
+        findNewTranslator: false,
+      })),
+    };
+
+    jest
+      .spyOn(service as any, 'findProjectById')
+      .mockResolvedValueOnce(projectDomain)
+      .mockResolvedValueOnce({
+        ...projectDomain,
+        state: ProjectState.COMPLETED,
+      });
+
+    const res = await service.updateState(
+      1,
+      999,
+      Role.ADMINISTRATOR,
+      ProjectState.COMPLETED,
+    );
+
+    expect(projectDomain.checkStateEditAccess).toHaveBeenCalledWith(
+      999,
+      Role.ADMINISTRATOR,
+      ProjectState.COMPLETED,
+    );
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ ProjectId: 1, state: ProjectState.COMPLETED }),
+    );
+    expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1);
+    expect(emailService.sendProjectCompletedEmail).toHaveBeenCalledWith(
+      'cust@x',
+      'file',
+    );
+    expect(res.state).toBe(ProjectState.COMPLETED);
+  });
+
+  it('updateState on ASSIGNED clears translatedFile, deletes feedback, and reassigns translator when available (admin)', async () => {
+    const projectDomain: any = {
+      ProjectId: 1,
+      state: ProjectState.APPROVED,
+      customer: { email: 'cust@x' },
+      fileName: 'file',
+      languageCode: 'en',
+      checkStateEditAccess: jest.fn(),
+      planStateUpdate: jest.fn(() => ({
+        deleteFeedback: true,
+        deleteTranslatedFile: true,
+        findNewTranslator: true,
+      })),
+    };
+
+    (userService.findCapableTranslator as any).mockResolvedValue({ id: 55 });
+
+    jest
+      .spyOn(service as any, 'findProjectById')
+      .mockResolvedValueOnce(projectDomain)
+      .mockResolvedValueOnce({
+        ...projectDomain,
+        state: ProjectState.ASSIGNED,
+        translator: { id: 55 },
+        hasTranslatedFile: false,
+      });
+
+    await service.updateState(
+      1,
+      999,
+      Role.ADMINISTRATOR,
+      ProjectState.ASSIGNED,
+    );
+
+    expect(userService.findCapableTranslator).toHaveBeenCalledWith('en');
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ProjectId: 1,
+        state: ProjectState.ASSIGNED,
+        translatedFile: undefined,
+        translator: { id: 55 },
+      }),
+    );
+    expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1);
+    expect(emailService.sendProjectCompletedEmail).not.toHaveBeenCalled();
+  });
+
+  it('updateState on ASSIGNED closes project when no translator available (admin)', async () => {
+    const projectDomain: any = {
+      ProjectId: 1,
+      state: ProjectState.APPROVED,
+      customer: { email: 'cust@x' },
+      fileName: 'file',
+      languageCode: 'en',
+      checkStateEditAccess: jest.fn(),
+      planStateUpdate: jest.fn(() => ({
+        deleteFeedback: true,
+        deleteTranslatedFile: true,
+        findNewTranslator: true,
+      })),
+    };
+
+    (userService.findCapableTranslator as any).mockResolvedValue(null);
+
+    jest
+      .spyOn(service as any, 'findProjectById')
+      .mockResolvedValueOnce(projectDomain)
+      .mockResolvedValueOnce({
+        ...projectDomain,
+        state: ProjectState.CLOSED,
+        translator: null,
+        hasTranslatedFile: false,
+      });
+
+    const res = await service.updateState(
+      1,
+      999,
+      Role.ADMINISTRATOR,
+      ProjectState.ASSIGNED,
+    );
+
+    expect(userService.findCapableTranslator).toHaveBeenCalledWith('en');
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ProjectId: 1,
+        state: ProjectState.CLOSED,
+        translatedFile: undefined,
+        translator: undefined,
+      }),
+    );
+    expect(res.state).toBe(ProjectState.CLOSED);
   });
 });
