@@ -166,7 +166,8 @@ describe('ProjectService', () => {
       Role.ADMINISTRATOR,
       ProjectState.COMPLETED,
     );
-    expect(repo.save).toHaveBeenCalledWith(
+    expect(repo.update).toHaveBeenCalledWith(
+      1,
       expect.objectContaining({ ProjectId: 1, state: ProjectState.COMPLETED }),
     );
     expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1);
@@ -212,11 +213,12 @@ describe('ProjectService', () => {
     );
 
     expect(userService.findCapableTranslator).toHaveBeenCalledWith('en');
-    expect(repo.save).toHaveBeenCalledWith(
+    expect(repo.update).toHaveBeenCalledWith(
+      1,
       expect.objectContaining({
         ProjectId: 1,
         state: ProjectState.ASSIGNED,
-        translatedFile: undefined,
+        translatedFile: null,
         translator: { id: 55 },
       }),
     );
@@ -259,12 +261,13 @@ describe('ProjectService', () => {
     );
 
     expect(userService.findCapableTranslator).toHaveBeenCalledWith('en');
-    expect(repo.save).toHaveBeenCalledWith(
+    expect(repo.update).toHaveBeenCalledWith(
+      1,
       expect.objectContaining({
         ProjectId: 1,
         state: ProjectState.CLOSED,
-        translatedFile: undefined,
-        translator: undefined,
+        translatedFile: null,
+        translator: null,
       }),
     );
     expect(res.state).toBe(ProjectState.CLOSED);

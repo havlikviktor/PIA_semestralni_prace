@@ -45,7 +45,10 @@ export class ProjectDomain {
     if (!customer) {
       throw new BadRequestException('Customer not provided');
     }
-    if (customer.role !== Role.CUSTOMER && customer.role !== Role.ADMINISTRATOR) {
+    if (
+      customer.role !== Role.CUSTOMER &&
+      customer.role !== Role.ADMINISTRATOR
+    ) {
       throw new BadRequestException(
         `User with ID ${customer.id} is not a customer`,
       );
@@ -105,12 +108,21 @@ export class ProjectDomain {
     deleteTranslatedFile: boolean;
     findNewTranslator: boolean;
   } {
+    if (ProjectStateOrder[newState] > ProjectStateOrder[this.state]) {
+      return {
+        deleteFeedback: false,
+        deleteTranslatedFile: false,
+        findNewTranslator: this.translator == null,
+      };
+    }
+
     return {
       deleteFeedback:
         ProjectStateOrder[newState] <= ProjectStateOrder[ProjectState.COMPLETED],
       deleteTranslatedFile:
         ProjectStateOrder[newState] <= ProjectStateOrder[ProjectState.ASSIGNED],
-      findNewTranslator: newState === ProjectState.CREATED,
+      findNewTranslator:
+        newState === ProjectState.CREATED || this.translator == null,
     };
   }
 
