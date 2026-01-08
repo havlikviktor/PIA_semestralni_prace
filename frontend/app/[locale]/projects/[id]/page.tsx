@@ -173,7 +173,7 @@ export default function ProjectPage() {
   };
 
   if (missingCredentials || unauthorized) return <LoginRedirecter />;
-  if (loading || isLoading) return <LoginRedirecter />;
+  if (loading || isLoading) return <LoadingSpinner text={t('loading')} />;
 
   if (error) return <div className="text-red-500">{error}</div>;
   if (!project) return <div>{t('notFound')}</div>;
