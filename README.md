@@ -155,10 +155,20 @@ docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
 The project includes E2E tests for the backend.
 
 ### Running Tests (Windows)
-A convenience script is provided to run unit tests and then execute E2E tests in a Docker container:
+A convenience script (`run-tests.bat`) is provided to run unit tests and then execute E2E tests in a Docker container:
+
+**Execution:**
 ```batch
 .\run-tests.bat
 ```
+It performs the following sequence:
+
+1.  **Unit Tests:** Executes backend unit tests locally (`npm test`). If these fail, the process stops.
+2.  **Build:** Builds the test docker image (`backend-test`), hiding verbose logs unless an error occurs.
+3.  **E2E Tests:** Launches the test stack via `docker-compose.test.yml`, runs the E2E suite, and streams the output.
+4.  **Cleanup:** Automatically tears down the test containers upon completion.
+
+
 
 ### Running Tests (Manual / Docker)
 To run E2E tests manually using Docker Compose:
