@@ -203,4 +203,33 @@ The backend provides a Swagger UI for exploring the API endpoints.
 Once the application is running, visit:
 **[http://localhost:4000/api](http://localhost:4000/api)**
 
+ Key Implementation Highlights
+
+   * Database Access Optimization:
+       * Selective Projection: The findUserProjects method utilizes TypeORM's select capability to explicitly fetch only metadata fields. This strictly
+         prevents loading large binary files (BLOBs) into memory during list operations, significantly reducing memory footprint and network latency.
+       * Efficient Association Checks: File existence checks are performed via optimized boolean mapping queries (mapHasTranslatedFile) rather than
+         instantiating entire file entities.
+
+   * RESTful API Design & Performance:
+       * Separation of Concerns (Endpoints): Binary file downloads are decoupled from project metadata retrieval. The specialized GET /projects/:id/file
+         endpoint utilizes streaming, keeping the main CRUD endpoints lightweight and responsive.
+       * Payload Validation: Strict validation is enforced via custom Pipes (e.g., FileValidationPipe, MultipartValidationPipe), ensuring data integrity and
+         preventing invalid inputs before they reach the business logic layer.
+
+*   **Architecture & Maintainability:**
+    *   **3-Layer Architecture:** The backend enforces a strict separation of concerns through a layered architecture (Controller, Service, Repository), ensuring modularity and testability.
+    *   **Data Abstraction Strategy:** The application implements a clear distinction between data representations to decouple layers:
+        *   **DTOs (Data Transfer Objects):** Define rigid contracts for API Input/Output, ensuring safe client communication.
+        *   **Domain Classes:** Encapsulate core business logic and state behaviors (e.g., `ProjectDomain`),
+          keeping the core system independent of framework details.
+        *   **Database ORM Entities:** Represent the persistence schema via TypeORM, isolated from the domain logic to allow flexible database evolution.
+
+   * DevOps & Reliability:
+       * Environment Isolation: Strict separation of Development, Production, and Testing environments via dedicated Docker Compose configurations prevents
+         configuration drift.
+       * Automated E2E Testing: A robust testing strategy is implemented with a self-contained test environment that provisions a fresh database, executes
+         tests, and performs cleanup automatically.
+
+
 ```
