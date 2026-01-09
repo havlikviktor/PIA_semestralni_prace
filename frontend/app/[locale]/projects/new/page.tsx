@@ -9,6 +9,16 @@ import { useAuth } from '@/hooks/useAuth';
 import LoginRedirecter from '@/components/LoginRedirecter';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { getServerUrl } from '@/utils/getServerURL';
+import Image from 'next/image';
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return 'Unknown error';
+}
 
 export default function CreateProject() {
   const t = useTranslations('CreateProject');
@@ -57,10 +67,11 @@ export default function CreateProject() {
       });
 
       router.push('/projects');
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
+      if (message !== 'Unauthorized') {
         console.error(err);
-        setError(err.message || t('error'));
+        setError(message || t('error'));
       }
     } finally {
       setIsSubmitting(false);
@@ -117,7 +128,7 @@ export default function CreateProject() {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <div className="text-white space-y-2 flex flex-col items-center justify-center ">
-                <img src="/img/uploadIcon.svg" alt="Upload file icon" />
+                <Image src="/img/uploadIcon.svg" alt="Upload file icon" width={48} height={48} />
                 <div className="text-sm text-gray-300">
                   {file ? (
                     <span className="font-medium text-gray-200">{file.name}</span>

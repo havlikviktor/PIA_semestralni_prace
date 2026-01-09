@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter } from '../../../i18n/navigation';
 import { Language } from '../../../constants/languages';
 import { useTranslations, useLocale } from 'next-intl';
@@ -9,6 +9,20 @@ import { useAuth } from '@/hooks/useAuth';
 import LoginRedirecter from '@/components/LoginRedirecter';
 import { getServerUrl } from '@/utils/getServerURL';
 import { Role } from '@/constants/role';
+
+type RoleSetupPayload = {
+  role: Role;
+  languages?: Language[];
+};
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return 'Unknown error';
+}
 
 function RoleSetupContent() {
   const t = useTranslations('Auth');
@@ -21,18 +35,7 @@ function RoleSetupContent() {
   const [role, setRole] = useState(Role.CUSTOMER);
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
   const [error, setError] = useState('');
-  const [userId, setUserId] = useState<number | null>(null);
   const serverUrl = getServerUrl();
-
-  useEffect(() => {
-    if (user) {
-      if (user.id) {
-        setUserId(user.id);
-      } else {
-        setError(t('userIdNotFound'));
-      }
-    }
-  }, [user]);
 
   const handleLanguageChange = (lang: Language) => {
     setSelectedLanguages((prev) =>
@@ -44,13 +47,14 @@ function RoleSetupContent() {
     e.preventDefault();
     setError('');
 
-    if (!userId) return;
-
-    let body: any = { role };
-
-    if (role === Role.TRANSLATOR) {
-      body.languages = selectedLanguages;
+    const userId = user?.id;
+    if (!userId) {
+      setError(t('userIdNotFound'));
+      return;
     }
+
+    const body: RoleSetupPayload =
+      role === Role.TRANSLATOR ? { role, languages: selectedLanguages } : { role };
 
     try {
       const updatedUser = await authFetch(`${serverUrl}/user/${userId}`, {
@@ -68,14 +72,16 @@ function RoleSetupContent() {
 
         // Store user without token field (backend may return either user fields directly or { user, accessToken })
         const userToStore = updatedUser.user ? updatedUser.user : updatedUser;
-        const { accessToken, ...userWithoutToken } = userToStore;
+        const userWithoutToken = { ...(userToStore as Record<string, unknown>) };
+        delete userWithoutToken.accessToken;
         localStorage.setItem('user', JSON.stringify(userWithoutToken));
       }
 
       router.push('/dashboard');
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
-        setError(err.message);
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
+      if (message !== 'Unauthorized') {
+        setError(message);
       }
     }
   };

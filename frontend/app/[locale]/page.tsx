@@ -4,6 +4,37 @@ import { useState, Suspense } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTranslations } from 'next-intl';
 import { getServerUrl } from '@/utils/getServerURL';
+import type { UserInfo } from '@/types/user';
+
+type LoginSuccessData = {
+  accessToken: string;
+  user: UserInfo;
+};
+
+function isLoginSuccessData(value: unknown): value is LoginSuccessData {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as { accessToken?: unknown; user?: unknown };
+  if (typeof v.accessToken !== 'string') return false;
+  if (!v.user || typeof v.user !== 'object') return false;
+
+  const u = v.user as Partial<UserInfo>;
+  return (
+    typeof u.id === 'number' &&
+    typeof u.name === 'string' &&
+    typeof u.role === 'string' &&
+    typeof u.email === 'string' &&
+    typeof u.isNewUser === 'boolean'
+  );
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return 'Unknown error';
+}
 
 function AuthContent() {
   const t = useTranslations('Auth');
@@ -20,11 +51,9 @@ function AuthContent() {
     setError('');
 
     const endpoint = isLogin ? 'login' : 'signup';
-    let body: any = { email, password };
-
-    if (!isLogin) {
-      body = { ...body, name };
-    }
+    const body: { email: string; password: string; name?: string } = isLogin
+      ? { email, password }
+      : { email, password, name };
 
     try {
       const res = await fetch(`${serverUrl}/auth/${endpoint}`, {
@@ -33,17 +62,21 @@ function AuthContent() {
         body: JSON.stringify(body),
       });
 
-      const data = await res.json();
+      const data: unknown = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || t('errorGeneric'));
+        const message =
+          data && typeof data === 'object' && 'message' in data
+            ? (data as { message?: unknown }).message
+            : undefined;
+        throw new Error(typeof message === 'string' ? message : t('errorGeneric'));
       }
 
-      if (data.accessToken) {
+      if (isLoginSuccessData(data)) {
         handleLoginSuccess(data);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     }
   };
 

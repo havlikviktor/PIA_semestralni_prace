@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   output: isProd ? 'standalone' : undefined,
   reactStrictMode: isProd,
   experimental: {
-    // @ts-ignore
+    // @ts-expect-error allowedDevOrigins is experimental and not included in NextConfig typings.
     allowedDevOrigins: [`http://${process.env.NEXT_PUBLIC_SERVER_URL}:${process.env.BACKEND_PORT}`],
   },
 };

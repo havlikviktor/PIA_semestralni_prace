@@ -1,8 +1,6 @@
 import { useTranslations } from 'next-intl';
 import type { UserInfo } from '@/types/user';
 import InfoField from './InfoField';
-import { Role } from '@/constants/role';
-import { mapRoleToEnum } from '@/utils/RoleMapper';
 
 interface UserInfoProps {
   titleKey: string;

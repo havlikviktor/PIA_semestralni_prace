@@ -2,6 +2,15 @@ import { UserInfo } from '../types/user';
 import { useRouter } from '../i18n/navigation';
 import { useState, useCallback } from 'react';
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return 'Fetch error';
+}
+
 export const useAuth = () => {
   const router = useRouter();
   const [unauthorized, setUnauthorized] = useState(false);
@@ -44,17 +53,19 @@ export const useAuth = () => {
 
     if (!res.ok) {
       const text = await res.text();
-      let errorObj: any = { message: 'Fetch error' };
-
       try {
         if (text) {
-          errorObj = JSON.parse(text);
+          const parsed: unknown = JSON.parse(text);
+          if (parsed && typeof parsed === 'object' && 'message' in parsed) {
+            const message = (parsed as { message?: unknown }).message;
+            throw new Error(typeof message === 'string' ? message : 'Fetch error');
+          }
         }
-      } catch (e) {
-        errorObj = { message: text };
+      } catch (error) {
+        if (error instanceof Error) throw error;
       }
 
-      throw errorObj;
+      throw new Error(text || 'Fetch error');
     }
   }, []);
 
@@ -95,11 +106,11 @@ export const useAuth = () => {
         await handleResponseStatus(res);
 
         return await parseResponse(res, responseType);
-      } catch (e: any) {
-        if (e.message === 'Unauthorized') return;
+      } catch (err: unknown) {
+        if (getErrorMessage(err) === 'Unauthorized') return;
 
-        console.error('Auth fetch error:', e);
-        throw e;
+        console.error('Auth fetch error:', err);
+        throw err;
       }
     },
     [getAuthHeaders, handleResponseStatus, parseResponse],

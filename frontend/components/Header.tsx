@@ -1,46 +1,64 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useRouter, usePathname } from '../i18n/navigation';
 import { useRoleTranslation } from '../hooks/useRoleTranslation';
 import LanguageSwitcher from './LanguageSwitcher';
 import { Role } from '../constants/role';
 import { mapRoleToEnum } from '../utils/RoleMapper';
 
+type StoredHeaderUser = {
+  name: string;
+  role: string;
+};
+
+function normalizeStoredUser(raw: unknown): StoredHeaderUser | null {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const maybeWrapped = raw as { user?: unknown };
+  const candidate =
+    maybeWrapped.user && typeof maybeWrapped.user === 'object' ? maybeWrapped.user : raw;
+  const u = candidate as Partial<StoredHeaderUser>;
+
+  if (typeof u.name !== 'string') return null;
+  if (typeof u.role !== 'string') return null;
+
+  return u as StoredHeaderUser;
+}
+
+function readStoredUser(): StoredHeaderUser | null {
+  if (typeof window === 'undefined') return null;
+
+  const userStr = window.localStorage.getItem('user');
+  if (!userStr) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(userStr);
+    return normalizeStoredUser(parsed);
+  } catch (error) {
+    console.error('Failed to parse user data', error);
+    return null;
+  }
+}
+
 export default function Header() {
   const t = useTranslations('Dashboard');
   const translateRole = useRoleTranslation();
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const user = readStoredUser();
 
   const isLoginPage = pathname === '/';
   const userRole = user ? mapRoleToEnum(user.role) : null;
 
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const parsed = JSON.parse(userStr);
-        const normalized =
-          parsed && typeof parsed === 'object' && 'user' in parsed ? (parsed as any).user : parsed;
-
-        setUser(normalized);
-      } catch (e) {
-        console.error('Failed to parse user data', e);
-        setUser(null);
-      }
-    } else {
-      setUser(null);
-    }
-  }, [pathname]);
-
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('accessToken');
-    setUser(null);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('user');
+      window.localStorage.removeItem('accessToken');
+    }
     router.push('/');
   };
 

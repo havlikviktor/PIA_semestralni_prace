@@ -41,16 +41,22 @@ export const useTicketLogin = () => {
         } else {
           throw new Error(t('tokenNotReceived'));
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err.message || t('loginFailed'));
+        const message =
+          err instanceof Error
+            ? err.message
+            : err && typeof err === 'object' && 'message' in err
+            ? (err as { message?: unknown }).message
+            : undefined;
+        setError(typeof message === 'string' ? message : t('loginFailed'));
       } finally {
         setIsLoading(false);
       }
     };
 
     exchangeTicket();
-  }, [searchParams, handleLoginSuccess, t]);
+  }, [searchParams, handleLoginSuccess, t, serverUrl]);
 
   return { isLoading, error };
 };

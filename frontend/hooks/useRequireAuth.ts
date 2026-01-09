@@ -5,7 +5,8 @@ function normalizeStoredUser(raw: unknown): UserInfo | null {
   if (!raw || typeof raw !== 'object') return null;
 
   const maybeWrapped = raw as { user?: unknown };
-  const candidate = maybeWrapped.user && typeof maybeWrapped.user === 'object' ? maybeWrapped.user : raw;
+  const candidate =
+    maybeWrapped.user && typeof maybeWrapped.user === 'object' ? maybeWrapped.user : raw;
   const u = candidate as Partial<UserInfo>;
 
   if (typeof u.id !== 'number') return null;
@@ -37,11 +38,16 @@ export const useRequireAuth = () => {
     }
 
     try {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+      const parsedUser: unknown = JSON.parse(storedUser);
+      const normalized = normalizeStoredUser(parsedUser);
+      if (!normalized) {
+        throw new Error('Invalid user data');
+      }
+
+      setUser(normalized);
       setToken(storedToken);
       setMissingCredentials(false);
-    } catch (error) {
+    } catch {
       console.error('Invalid user data in localStorage');
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');

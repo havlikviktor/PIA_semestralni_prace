@@ -7,8 +7,8 @@ export const downloadProjectFile = async (
   authFetch: (
     url: string,
     options?: RequestInit,
-    responseType?: 'json' | 'blob' | 'text',
-  ) => Promise<any>,
+    responseType?: 'blob',
+  ) => Promise<{ blob: Blob; headers: Headers }>,
 ): Promise<void> => {
   const { blob, headers } = await authFetch(
     `${serverUrl}/projects/${projectId}/file?type=${type}`,
