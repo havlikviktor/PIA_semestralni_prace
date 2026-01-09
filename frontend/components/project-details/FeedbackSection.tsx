@@ -3,13 +3,19 @@ import { useState } from 'react';
 import { ProjectState } from '@/constants/projectState';
 import { Project } from '@/types/project';
 import { mapStateToEnum } from '@/utils/StateMapper';
+import { Role } from '@/constants/role';
 
 interface FeedbackSectionProps {
   project: Project;
+  userRole: Role | undefined;
   onSubmitFeedback: (text: string) => Promise<void>;
 }
 
-export default function FeedbackSection({ project, onSubmitFeedback }: FeedbackSectionProps) {
+export default function FeedbackSection({
+  project,
+  userRole,
+  onSubmitFeedback,
+}: FeedbackSectionProps) {
   const t = useTranslations('ProjectDetails');
   const [feedbackText, setFeedbackText] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +45,8 @@ export default function FeedbackSection({ project, onSubmitFeedback }: FeedbackS
             {new Date(project.feedback.createdAt).toLocaleDateString()}
           </p>
         </div>
-      ) : [ProjectState.APPROVED, ProjectState.REJECTED].includes(mapStateToEnum(project.state)) ? (
+      ) : [ProjectState.APPROVED, ProjectState.REJECTED].includes(mapStateToEnum(project.state)) &&
+        (userRole === Role.CUSTOMER || userRole === Role.ADMINISTRATOR) ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <textarea
             value={feedbackText}

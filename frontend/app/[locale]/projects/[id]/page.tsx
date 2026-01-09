@@ -289,7 +289,7 @@ export default function ProjectPage() {
             onUpdateState={handleUpdateState}
           />
 
-          <FeedbackSection project={project} onSubmitFeedback={handleSubmitFeedback} />
+          <FeedbackSection userRole={userRole} project={project} onSubmitFeedback={handleSubmitFeedback} />
         </div>
       </div>
     </div>
