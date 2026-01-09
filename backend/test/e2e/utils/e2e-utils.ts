@@ -88,7 +88,7 @@ export function mintAccessToken(jwtService: JwtService, user: UserEntity) {
   return jwtService.sign({
     sub: user.id,
     name: user.name,
-    role: user.role as Role,
+    role: user.role,
   });
 }
 

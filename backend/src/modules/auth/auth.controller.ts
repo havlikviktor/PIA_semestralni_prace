@@ -6,18 +6,18 @@ import {
   Req,
   UseGuards,
   Res,
-  UseInterceptors,
   HttpCode,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
-import { Response } from 'express';
+import type { Request, Response } from 'express';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from '../user/dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import type { UserDomain } from '../../domain-entites/user.domain';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -60,7 +60,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Login with Google' })
   @ApiResponse({ status: 302, description: 'Redirect to Google OAuth.' })
-  async googleAuth(@Req() req) {}
+  googleAuth(): void {}
 
   @Public()
   @Get('google/callback')
@@ -70,7 +70,10 @@ export class AuthController {
     status: 302,
     description: 'Redirect to frontend with ticket.',
   })
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+  googleAuthRedirect(
+    @Req() req: Request & { user: UserDomain },
+    @Res() res: Response,
+  ): void {
     const user = req.user;
     const token = this.authService.signToken(user);
     const ticket = this.authService.generateTicket(token, user);
@@ -92,7 +95,7 @@ export class AuthController {
     type: AuthResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Invalid or expired ticket.' })
-  async exchangeTicket(@Body('ticket') ticket: string) {
+  exchangeTicket(@Body('ticket') ticket: string) {
     return this.authService.exchangeTicket(ticket);
   }
 }

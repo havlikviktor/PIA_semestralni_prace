@@ -5,15 +5,14 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
-  NotFoundException,
-  Request,
+  Req,
   Res,
   ParseEnumPipe,
   Query,
   HttpCode,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -21,7 +20,7 @@ import { UpdateProjectStateDto } from './dto/update-project-state.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MultipartValidationPipe } from '../../pipes/multipart-validation.pipe';
 import { FileValidationPipe } from './pipes/file-validation.pipe';
-import { Response } from 'express';
+import type { Request as ExpressRequest, Response } from 'express';
 import { FileType } from './entities/project.entity';
 
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
@@ -45,6 +44,9 @@ import {
 import { ProjectListItemDto } from './dto/project-list-item.dto';
 import { ProjectDetailDto } from './dto/project-detail.dto';
 import { ProjectFeedbackResponseDto } from './dto/project-feedback-response.dto';
+import { Role } from '../user/entities/user.entity';
+
+type JwtRequest = ExpressRequest & { user: { sub: number; role: Role } };
 
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -93,7 +95,7 @@ export class ProjectController {
     isArray: true,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async findAll(@Request() req) {
+  async findAll(@Req() req: JwtRequest) {
     return this.projectService.findUserProjects(req.user.sub, req.user.role);
   }
 
@@ -110,7 +112,7 @@ export class ProjectController {
     description: 'Forbidden. Not allowed to access project.',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  async findOne(@Param('id') id: string, @Request() req) {
+  async findOne(@Param('id') id: string, @Req() req: JwtRequest) {
     return this.projectService.findProjectDetailForUser(
       +id,
       req.user.sub,
@@ -153,7 +155,7 @@ export class ProjectController {
   async uploadTranslatedFile(
     @Param('id') id: string,
     @UploadedFile(FileValidationPipe) file: Express.Multer.File,
-    @Request() req,
+    @Req() req: JwtRequest,
   ) {
     const domain = await this.projectService.uploadTranslatedFile(
       +id,
@@ -180,8 +182,8 @@ export class ProjectController {
   })
   @ApiResponse({ status: 404, description: 'File or Project not found.' })
   async getFile(
-    @Param('id') projectId: number,
-    @Request() req,
+    @Param('id', ParseIntPipe) projectId: number,
+    @Req() req: JwtRequest,
     @Query('type', new ParseEnumPipe(FileType, { optional: true }))
     type: FileType = FileType.ORIGINAL,
     @Res() res: Response,
@@ -193,7 +195,7 @@ export class ProjectController {
       type,
     );
     const encodedFilename = encodeURIComponent(fileData.filename);
-    const asciiFilename = fileData.filename.replace(/[^\x00-\x7F]/g, '_');
+    const asciiFilename = fileData.filename.replace(/[^\u0020-\u007E]/g, '_');
 
     res.set({
       'Content-Type': fileData.mimeType,
@@ -224,7 +226,7 @@ export class ProjectController {
   async addFeedback(
     @Param('id') id: string,
     @Body() createFeedbackDto: CreateFeedbackDto,
-    @Request() req,
+    @Req() req: JwtRequest,
   ) {
     const domain = await this.feedbackService.addFeedback(
       +id,
@@ -255,7 +257,7 @@ export class ProjectController {
   async updateState(
     @Param('id') id: string,
     @Body() updateProjectStateDto: UpdateProjectStateDto,
-    @Request() req,
+    @Req() req: JwtRequest,
   ) {
     const domain = await this.projectService.updateState(
       +id,

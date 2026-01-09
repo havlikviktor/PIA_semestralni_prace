@@ -1,15 +1,5 @@
-import {
-  Controller,
-  Get,
-  Body,
-  Patch,
-  Param,
-  Query,
-  Delete,
-  HttpCode,
-  Req,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Req } from '@nestjs/common';
+import type { Request as ExpressRequest } from 'express';
 import { UserService } from './user.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UserMapper } from './user.mapper';
@@ -21,6 +11,9 @@ import {
 } from '@nestjs/swagger';
 import { UserInfoDto } from './dto/user-info.dto';
 import { AuthResponseDto } from '../auth/dto/auth-response.dto';
+import { Role } from './entities/user.entity';
+
+type JwtRequest = ExpressRequest & { user: { sub: number; role: Role } };
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -38,7 +31,7 @@ export class UserController {
     description: 'Current user info retrieved successfully.',
     type: UserInfoDto,
   })
-  async getMe(@Req() req) {
+  async getMe(@Req() req: JwtRequest) {
     const user = await this.userService.findOne(req.user.sub);
     return this.userMapper.toDto(user!);
   }
@@ -64,7 +57,7 @@ export class UserController {
   async updateRole(
     @Param('id') id: string,
     @Body() updateUserRoleDto: UpdateUserRoleDto,
-    @Req() req,
+    @Req() req: JwtRequest,
   ) {
     return this.userService.updateRole(+id, req.user.role, updateUserRoleDto);
   }

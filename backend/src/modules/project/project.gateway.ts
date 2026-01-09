@@ -10,7 +10,7 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
+import { Server, Socket, type DefaultEventsMap } from 'socket.io';
 import { ProjectService } from './project.service';
 import { ProjectRealtimeService } from './project-realtime.service';
 import { WsJwtAuthService, WsUser } from '../auth/ws-jwt-auth.service';
@@ -19,6 +19,13 @@ import type { ProjectListItemDto } from './dto/project-list-item.dto';
 import { ProjectIdDto } from './ws/dto/project-id.dto';
 import { UpdateProjectStateWsDto } from './ws/dto/update-project-state.ws.dto';
 import { ProjectSocketEvent } from './ws/project.ws-events';
+
+type AuthedSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  { user?: WsUser }
+>;
 
 @WebSocketGateway({
   cors: {
@@ -60,12 +67,12 @@ export class ProjectGateway
    * Called when a client connects.
    * Authenticates the socket (JWT) and joins user/role rooms.
    */
-  async handleConnection(client: Socket): Promise<void> {
+  async handleConnection(client: AuthedSocket): Promise<void> {
     try {
       const user = await this.wsJwtAuth.authenticate(client);
       client.data.user = user;
-      client.join(`user_${user.sub}`);
-      client.join(`role_${user.role}`);
+      await client.join(`user_${user.sub}`);
+      await client.join(`role_${user.role}`);
       this.logger.debug(
         `Client connected ${client.id} (user=${user.sub}, role=${user.role})`,
       );
@@ -80,7 +87,7 @@ export class ProjectGateway
   /**
    * Called when a client disconnects.
    */
-  handleDisconnect(client: Socket): void {
+  handleDisconnect(client: AuthedSocket): void {
     const user: WsUser | undefined = client.data?.user;
     this.logger.debug(
       `Client disconnected ${client.id}${user ? ` (user=${user.sub})` : ''}`,
@@ -95,7 +102,7 @@ export class ProjectGateway
    *
    * On authentication failure, notifies the client and disconnects.
    */
-  private async ensureUser(client: Socket): Promise<WsUser> {
+  private async ensureUser(client: AuthedSocket): Promise<WsUser> {
     const existing: WsUser | undefined = client.data?.user;
     if (existing) {
       return existing;
@@ -104,8 +111,8 @@ export class ProjectGateway
     try {
       const user = await this.wsJwtAuth.authenticate(client);
       client.data.user = user;
-      client.join(`user_${user.sub}`);
-      client.join(`role_${user.role}`);
+      await client.join(`user_${user.sub}`);
+      await client.join(`role_${user.role}`);
       return user;
     } catch (e: unknown) {
       client.emit(ProjectSocketEvent.Unauthorized, {
@@ -123,10 +130,10 @@ export class ProjectGateway
    */
   async handleSubscribe(
     @MessageBody() body: ProjectIdDto,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthedSocket,
   ): Promise<{ joined: boolean; projectId: number }> {
     await this.ensureUser(client);
-    client.join(`project_${body.projectId}`);
+    await client.join(`project_${body.projectId}`);
     return { joined: true, projectId: body.projectId };
   }
 
@@ -136,10 +143,10 @@ export class ProjectGateway
    */
   async handleUnsubscribe(
     @MessageBody() body: ProjectIdDto,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthedSocket,
   ): Promise<{ left: boolean; projectId: number }> {
     await this.ensureUser(client);
-    client.leave(`project_${body.projectId}`);
+    await client.leave(`project_${body.projectId}`);
     return { left: true, projectId: body.projectId };
   }
 
@@ -148,7 +155,7 @@ export class ProjectGateway
    * Returns the project list visible to the authenticated user.
    */
   async handleList(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthedSocket,
   ): Promise<ProjectListItemDto[]> {
     const user = await this.ensureUser(client);
     return this.projectService.findUserProjects(user.sub, user.role);
@@ -160,7 +167,7 @@ export class ProjectGateway
    */
   async handleGet(
     @MessageBody() body: ProjectIdDto,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthedSocket,
   ): Promise<ProjectDetailDto> {
     const user = await this.ensureUser(client);
     return this.projectService.findProjectDetailForUser(
@@ -176,7 +183,7 @@ export class ProjectGateway
    */
   async handleUpdateState(
     @MessageBody() body: UpdateProjectStateWsDto,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthedSocket,
   ): Promise<ProjectDetailDto> {
     const user = await this.ensureUser(client);
     const domain = await this.projectService.updateState(

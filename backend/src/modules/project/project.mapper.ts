@@ -3,7 +3,6 @@ import { ProjectEntity } from './entities/project.entity';
 import { ProjectDomain } from '../../domain-entites/project.domain';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UserMapper } from '../user/user.mapper';
-import { UserDomain } from '../../domain-entites/user.domain';
 import { ProjectState } from './entities/project.entity';
 import { FeedbackMapper } from './feedback.mapper';
 import { ProjectListItemDto } from './dto/project-list-item.dto';

@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Language } from '../../user/entities/translator-language.entity';
 import { ApiProperty } from '@nestjs/swagger';

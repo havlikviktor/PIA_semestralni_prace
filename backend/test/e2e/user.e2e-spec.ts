@@ -138,9 +138,9 @@ describe('User (e2e)', () => {
       expect.objectContaining({
         accessToken: expect.any(String),
         user: expect.objectContaining({
-        id: target.id,
-        role: Role.TRANSLATOR,
-      }),
+          id: target.id,
+          role: Role.TRANSLATOR,
+        }),
       }),
     );
   });

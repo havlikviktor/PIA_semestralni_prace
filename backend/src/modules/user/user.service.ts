@@ -45,7 +45,7 @@ export class UserService {
 
     const entity = this.userMapper.toEntity(userDomain);
     const savedUserEntity = await this.userRepository.save(entity);
-    let newUserDomain = this.userMapper.toDomain(savedUserEntity);
+    const newUserDomain = this.userMapper.toDomain(savedUserEntity);
     newUserDomain.isNewUser = true;
     return newUserDomain;
   }
@@ -60,7 +60,7 @@ export class UserService {
       displayName: string;
     };
     const email = emails[0].value;
-    let user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: [{ googleId: id }, { email }],
     });
 
@@ -81,7 +81,7 @@ export class UserService {
     });
 
     const createdUser = await this.userRepository.save(newUser);
-    let domainUser = this.userMapper.toDomain(createdUser);
+    const domainUser = this.userMapper.toDomain(createdUser);
 
     domainUser.isNewUser = true;
     return domainUser;
@@ -125,7 +125,7 @@ export class UserService {
     requesterRole: Role,
     updateUserRoleDto: UpdateUserRoleDto,
   ): Promise<{ accessToken: string; user: UserInfoDto }> {
-    let userDomainUpdate = new UserDomain({ id: id, ...updateUserRoleDto });
+    const userDomainUpdate = new UserDomain({ id: id, ...updateUserRoleDto });
     if (
       userDomainUpdate.role === Role.ADMINISTRATOR &&
       requesterRole !== Role.ADMINISTRATOR

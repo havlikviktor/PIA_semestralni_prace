@@ -2,9 +2,10 @@ import {
   Controller,
   Post,
   Body,
-  Request,
+  Req,
   ForbiddenException,
 } from '@nestjs/common';
+import type { Request as ExpressRequest } from 'express';
 import { EmailService } from './email.service';
 import { SendEmailDto } from './dto/send-email.dto';
 import { Role } from '../user/entities/user.entity';
@@ -30,7 +31,10 @@ export class EmailController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  async sendEmail(@Request() req, @Body() sendEmailDto: SendEmailDto) {
+  async sendEmail(
+    @Req() req: ExpressRequest & { user: { role: Role } },
+    @Body() sendEmailDto: SendEmailDto,
+  ) {
     const user = req.user;
     if (user.role !== Role.ADMINISTRATOR) {
       throw new ForbiddenException('Only administrators can send emails');

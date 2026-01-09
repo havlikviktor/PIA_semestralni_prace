@@ -206,14 +206,16 @@ export class ProjectDomain {
     if (fileType === FileType.TRANSLATED) {
       if (!this.translatedFile) {
         throw new NotFoundException(
-          `File for project with ID ${this.ProjectId} is not translated yet`,
+          'File for project with ID ' +
+            this.ProjectId +
+            ' is not translated yet',
         );
       }
       buffer = this.translatedFile;
     } else if (fileType === FileType.ORIGINAL) {
       buffer = this.originalFile;
     } else {
-      throw new BadRequestException(`Invalid file type requested: ${fileType}`);
+      throw new BadRequestException('Invalid file type requested');
     }
 
     return {

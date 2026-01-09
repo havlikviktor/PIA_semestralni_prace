@@ -203,7 +203,7 @@ export class ProjectService {
       .select('project.ProjectId', 'id')
       .where('project.ProjectId IN (:...ids)', { ids: projectIds })
       .andWhere('project.translatedFile IS NOT NULL')
-      .getRawMany();
+      .getRawMany<{ id: number }>();
 
     const projectsWithFilesSet = new Set(projectsWithFiles.map((p) => p.id));
 

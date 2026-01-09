@@ -19,7 +19,8 @@ export class FileValidationPipe implements PipeTransform {
     );
   }
 
-  transform(value: Express.Multer.File, metadata: ArgumentMetadata) {
+  transform(value: Express.Multer.File, _metadata: ArgumentMetadata) {
+    void _metadata;
     if (!value) {
       throw new UnprocessableEntityException({
         statusCode: HttpStatus.UNPROCESSABLE_ENTITY,

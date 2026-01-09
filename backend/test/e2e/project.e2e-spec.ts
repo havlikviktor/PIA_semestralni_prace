@@ -118,7 +118,7 @@ describe('Projects (e2e)', () => {
       .map((p: any) => p?.ProjectId)
       .filter((id: any) => typeof id === 'number');
     expect(ids.length).toBeGreaterThan(0);
-    return Math.max(...ids) as number;
+    return Math.max(...ids);
   }
 
   it('POST /projects requires auth (negative)', async () => {

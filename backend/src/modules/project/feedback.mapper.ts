@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProjectFeedbackEntity } from './entities/project-feedback.entity';
 import { FeedbackDomain } from '../../domain-entites/feedback.domain';
-import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { ProjectFeedbackResponseDto } from './dto/project-feedback-response.dto';
 
 @Injectable()

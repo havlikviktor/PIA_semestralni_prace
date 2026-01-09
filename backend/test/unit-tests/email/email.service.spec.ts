@@ -24,7 +24,6 @@ describe('EmailService', () => {
       }),
     } as unknown as ConfigService;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const service = new EmailService(config);
 
     expect(nodemailer.createTransport).toHaveBeenCalledWith(
