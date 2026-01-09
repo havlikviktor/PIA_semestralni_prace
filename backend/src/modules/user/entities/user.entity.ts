@@ -27,6 +27,9 @@ export class UserEntity {
   })
   languages: TranslatorLanguage[];
 
+  /**
+   * Convenience constructor for partial hydration.
+   */
   constructor(user: Partial<UserEntity>) {
     Object.assign(this, user);
   }

@@ -14,6 +14,12 @@ import { Role } from '../modules/user/entities/user.entity';
 
 import { FeedbackDomain } from './feedback.domain';
 
+export type ProjectFileData = {
+  buffer: Buffer;
+  filename: string;
+  mimeType: string;
+};
+
 export class ProjectDomain {
   ProjectId: number;
   customer: UserDomain;
@@ -27,11 +33,19 @@ export class ProjectDomain {
   feedback?: FeedbackDomain | null;
   hasTranslatedFile?: boolean;
 
+  /**
+   * Creates a project domain object.
+   *
+   * @param init Optional partial initialization.
+   */
   constructor(init?: Partial<ProjectDomain>) {
     Object.assign(this, init);
   }
 
-  addOriginalFile(file: Express.Multer.File) {
+  /**
+   * Adds the original file (binary + decoded filename) to this project.
+   */
+  addOriginalFile(file: Express.Multer.File): void {
     if (file) {
       this.originalFile = file.buffer;
       const originalName = Buffer.from(file.originalname, 'latin1').toString(
@@ -41,7 +55,12 @@ export class ProjectDomain {
     }
   }
 
-  addCustomer(customer: UserDomain) {
+  /**
+   * Assigns a customer to the project.
+   *
+   * @throws BadRequestException When customer is missing/invalid or already assigned.
+   */
+  addCustomer(customer: UserDomain): void {
     if (!customer) {
       throw new BadRequestException('Customer not provided');
     }
@@ -62,7 +81,12 @@ export class ProjectDomain {
     this.customer = customer;
   }
 
-  checkAccess(userId: number, role: Role) {
+  /**
+   * Ensures the given user can access this project.
+   *
+   * @throws ForbiddenException When the user does not have access.
+   */
+  checkAccess(userId: number, role: Role): void {
     if (role === Role.ADMINISTRATOR) {
       return;
     }
@@ -78,7 +102,17 @@ export class ProjectDomain {
     }
   }
 
-  checkStateEditAccess(userId: number, role: Role, newState: ProjectState) {
+  /**
+   * Ensures the given user can move the project to the provided state.
+   *
+   * @throws ForbiddenException When the user is not allowed.
+   * @throws BadRequestException When the transition is invalid.
+   */
+  checkStateEditAccess(
+    userId: number,
+    role: Role,
+    newState: ProjectState,
+  ): void {
     if (role === Role.ADMINISTRATOR) {
       return;
     }
@@ -118,7 +152,8 @@ export class ProjectDomain {
 
     return {
       deleteFeedback:
-        ProjectStateOrder[newState] <= ProjectStateOrder[ProjectState.COMPLETED],
+        ProjectStateOrder[newState] <=
+        ProjectStateOrder[ProjectState.COMPLETED],
       deleteTranslatedFile:
         ProjectStateOrder[newState] <= ProjectStateOrder[ProjectState.ASSIGNED],
       findNewTranslator:
@@ -126,7 +161,10 @@ export class ProjectDomain {
     };
   }
 
-  private checkTranslatorStateEdit(newState: ProjectState) {
+  /**
+   * Validates translator-driven state changes.
+   */
+  private checkTranslatorStateEdit(newState: ProjectState): void {
     if (this.state !== ProjectState.ASSIGNED) {
       throw new BadRequestException(
         `Project state must be in state ASSIGNED to update`,
@@ -138,7 +176,10 @@ export class ProjectDomain {
     }
   }
 
-  private checkCustomerStateEdit(newState: ProjectState) {
+  /**
+   * Validates customer-driven state changes.
+   */
+  private checkCustomerStateEdit(newState: ProjectState): void {
     if (this.state !== ProjectState.COMPLETED) {
       throw new BadRequestException(
         `Project state must be in state COMPLETED to update`,
@@ -153,8 +194,14 @@ export class ProjectDomain {
     }
   }
 
-  getFile(fileType: FileType) {
-    let buffer: Buffer | undefined;
+  /**
+   * Returns a file payload (buffer + metadata) for download.
+   *
+   * @throws NotFoundException When translated file is requested but missing.
+   * @throws BadRequestException When file type is invalid.
+   */
+  getFile(fileType: FileType): ProjectFileData {
+    let buffer: Buffer;
 
     if (fileType === FileType.TRANSLATED) {
       if (!this.translatedFile) {
@@ -179,7 +226,13 @@ export class ProjectDomain {
     };
   }
 
-  canUploadTranslatedFile(userId: number, role: Role) {
+  /**
+   * Ensures the given user may upload a translated file for this project.
+   *
+   * @throws ForbiddenException When not a translator.
+   * @throws BadRequestException When project is not in ASSIGNED state.
+   */
+  canUploadTranslatedFile(userId: number, role: Role): void {
     this.checkAccess(userId, role);
 
     if (role !== Role.TRANSLATOR) {

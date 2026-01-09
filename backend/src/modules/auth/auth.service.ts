@@ -45,7 +45,7 @@ export class AuthService {
       2 * 60 * 1000,
     );
     // Prevent keeping the process alive (important for Jest E2E runs)
-    (timeout as any).unref?.();
+    (timeout as unknown as { unref?: () => void }).unref?.();
 
     this.pendingTickets.set(ticket, { token, user });
     return ticket;

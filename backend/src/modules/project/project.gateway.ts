@@ -44,12 +44,12 @@ export class ProjectGateway
     private readonly wsJwtAuth: WsJwtAuthService,
   ) {}
 
-  afterInit(server: Server) {
+  afterInit(server: Server): void {
     this.realtime.bindServer(server);
     this.logger.log('Projects gateway initialized');
   }
 
-  async handleConnection(client: Socket) {
+  async handleConnection(client: Socket): Promise<void> {
     try {
       const user = await this.wsJwtAuth.authenticate(client);
       client.data.user = user;
@@ -58,15 +58,15 @@ export class ProjectGateway
       this.logger.debug(
         `Client connected ${client.id} (user=${user.sub}, role=${user.role})`,
       );
-    } catch (e: any) {
+    } catch (e: unknown) {
       client.emit(ProjectSocketEvent.Unauthorized, {
-        message: e?.message ?? 'Unauthorized',
+        message: e instanceof Error ? e.message : 'Unauthorized',
       });
       client.disconnect(true);
     }
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket): void {
     const user: WsUser | undefined = client.data?.user;
     this.logger.debug(
       `Client disconnected ${client.id}${user ? ` (user=${user.sub})` : ''}`,

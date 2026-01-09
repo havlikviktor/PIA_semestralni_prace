@@ -10,6 +10,12 @@ interface JwtPayload {
   role: Role;
 }
 
+type JwtValidatedUser = {
+  sub: number;
+  name: string;
+  role: Role;
+};
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -23,7 +29,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  /**
+   * Validates the JWT payload against the current user record.
+   */
+  async validate(payload: JwtPayload): Promise<JwtValidatedUser> {
     const user = await this.userService.findOne(payload.sub);
 
     if (!user) {

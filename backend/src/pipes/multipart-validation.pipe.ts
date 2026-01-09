@@ -11,7 +11,13 @@ import { validate } from 'class-validator';
 // before being sent to the server when creating a new project
 @Injectable()
 export class MultipartValidationPipe implements PipeTransform {
-  async transform(value: any, { metatype }: ArgumentMetadata) {
+  /**
+   * Transforms multipart/form-data payload into a DTO instance and validates it.
+   */
+  async transform(
+    value: unknown,
+    { metatype }: ArgumentMetadata,
+  ): Promise<unknown> {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }

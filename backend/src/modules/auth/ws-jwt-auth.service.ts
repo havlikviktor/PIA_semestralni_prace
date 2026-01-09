@@ -24,12 +24,14 @@ export class WsJwtAuthService {
   ) {}
 
   private extractToken(client: Socket): string | null {
-    const authToken = (client.handshake as any)?.auth?.token;
+    const auth = client.handshake.auth as Record<string, unknown> | undefined;
+    const authToken = auth?.token;
     if (typeof authToken === 'string' && authToken.length > 0) {
       return authToken;
     }
 
-    const queryToken = (client.handshake as any)?.query?.token;
+    const query = client.handshake.query as Record<string, unknown> | undefined;
+    const queryToken = query?.token;
     if (typeof queryToken === 'string' && queryToken.length > 0) {
       return queryToken;
     }

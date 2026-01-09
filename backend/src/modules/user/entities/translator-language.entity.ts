@@ -50,6 +50,9 @@ export class TranslatorLanguage {
   @PrimaryColumn()
   languageCode: Language;
 
+  /**
+   * Convenience constructor for partial hydration.
+   */
   constructor(translatorLanguage: Partial<TranslatorLanguage>) {
     Object.assign(this, translatorLanguage);
   }

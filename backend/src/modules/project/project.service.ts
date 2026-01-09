@@ -6,8 +6,10 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { ProjectDetailDto } from './dto/project-detail.dto';
+import { ProjectListItemDto } from './dto/project-list-item.dto';
 import {
   FileType,
   ProjectEntity,
@@ -20,6 +22,7 @@ import { Language } from '../user/entities/translator-language.entity';
 import { UserDomain } from 'src/domain-entites/user.domain';
 import { ProjectMapper } from './project.mapper';
 import { ProjectDomain } from 'src/domain-entites/project.domain';
+import type { ProjectFileData } from 'src/domain-entites/project.domain';
 import { FeedbackService } from './feedback.service';
 import { ProjectRealtimeService } from './project-realtime.service';
 
@@ -36,7 +39,13 @@ export class ProjectService {
     private readonly realtime: ProjectRealtimeService,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto, file: Express.Multer.File) {
+  /**
+   * Creates a project, assigns translator if possible, sends notifications, and emits realtime updates.
+   */
+  async create(
+    createProjectDto: CreateProjectDto,
+    file: Express.Multer.File,
+  ): Promise<void> {
     const customerDomain = await this.checkCustomer(
       createProjectDto.customerId,
     );
@@ -74,14 +83,23 @@ export class ProjectService {
     });
   }
 
-  toDetailDto(domain: ProjectDomain) {
+  /**
+   * Maps a project domain to the detail DTO.
+   */
+  toDetailDto(domain: ProjectDomain): ProjectDetailDto {
     return this.projectMapper.toDetailDto(domain);
   }
 
-  toListItemDto(domain: ProjectDomain) {
+  /**
+   * Maps a project domain to the list item DTO.
+   */
+  toListItemDto(domain: ProjectDomain): ProjectListItemDto {
     return this.projectMapper.toDto(domain);
   }
 
+  /**
+   * Picks and assigns the best translator for a project, or closes it if none available.
+   */
   private async assignTranslator(
     project: ProjectDomain,
     languageCode: Language,
@@ -99,11 +117,14 @@ export class ProjectService {
     }
   }
 
+  /**
+   * Sends email notifications based on the project state (assigned/closed).
+   */
   private async sendProjectNotifications(
     project: ProjectDomain,
     translator: UserDomain | null,
     customer: UserDomain,
-  ) {
+  ): Promise<void> {
     if (project.state === ProjectState.ASSIGNED && translator?.email) {
       await this.emailService.sendProjectAssignedEmail(
         translator.email,
@@ -117,7 +138,10 @@ export class ProjectService {
     }
   }
 
-  private async checkCustomer(customerId: number) {
+  /**
+   * Resolves and validates the customer for a project.
+   */
+  private async checkCustomer(customerId: number): Promise<UserDomain> {
     const customer = await this.userService.findOne(customerId);
     if (!customer) {
       throw new BadRequestException(`Customer with ID ${customerId} not found`);
@@ -125,12 +149,15 @@ export class ProjectService {
     return customer;
   }
 
+  /**
+   * Uploads the translated file and emits realtime project updates.
+   */
   async uploadTranslatedFile(
     projectId: number,
     userId: number,
     role: Role,
     file: Express.Multer.File,
-  ) {
+  ): Promise<ProjectDomain> {
     const project = await this.findProjectById(projectId);
     project.canUploadTranslatedFile(userId, role);
 
@@ -151,6 +178,9 @@ export class ProjectService {
     return updated;
   }
 
+  /**
+   * Checks whether a project has a translated file stored.
+   */
   async hasTranslatedFile(projectId: number): Promise<boolean> {
     const count = await this.projectRepository
       .createQueryBuilder('project')
@@ -160,6 +190,9 @@ export class ProjectService {
     return count > 0;
   }
 
+  /**
+   * Hydrates domains with the computed `hasTranslatedFile` property.
+   */
   async mapHasTranslatedFile(
     projects: ProjectEntity[],
   ): Promise<ProjectDomain[]> {
@@ -182,8 +215,14 @@ export class ProjectService {
     );
   }
 
-  async findUserProjects(userId: number, role: Role) {
-    const where: any = {};
+  /**
+   * Returns projects visible to the given user.
+   */
+  async findUserProjects(
+    userId: number,
+    role: Role,
+  ): Promise<ProjectListItemDto[]> {
+    const where: FindOptionsWhere<ProjectEntity> = {};
     if (role === Role.CUSTOMER) {
       where.customer = { id: userId };
     } else if (role === Role.TRANSLATOR) {
@@ -213,7 +252,10 @@ export class ProjectService {
     return domains.map((d) => this.projectMapper.toDto(d));
   }
 
-  async findProjectById(ProjectId: number) {
+  /**
+   * Loads a project by ID with its relations and computed `hasTranslatedFile`.
+   */
+  async findProjectById(ProjectId: number): Promise<ProjectDomain> {
     const projectEntity = await this.projectRepository.findOne({
       where: { ProjectId },
       relations: ['customer', 'translator', 'feedback'],
@@ -248,17 +290,23 @@ export class ProjectService {
     return this.projectMapper.toDomain(projectEntity, hasFile);
   }
 
+  /**
+   * Loads the project detail for a given user (checks access).
+   */
   async findProjectDetailForUser(
     projectId: number,
     userId: number,
     role: Role,
-  ) {
+  ): Promise<ProjectDetailDto> {
     const domain = await this.findProjectById(projectId);
     domain.checkAccess(userId, role);
     return this.projectMapper.toDetailDto(domain);
   }
 
-  async findProjectFiles(projectId: number) {
+  /**
+   * Loads the project files (original/translated) and minimal user IDs for access checks.
+   */
+  async findProjectFiles(projectId: number): Promise<ProjectDomain> {
     const projectEntity = await this.projectRepository.findOne({
       where: { ProjectId: projectId },
       relations: ['customer', 'translator'],
@@ -283,24 +331,30 @@ export class ProjectService {
     return this.projectMapper.toDomain(projectEntity);
   }
 
+  /**
+   * Returns the requested file payload for a project after access checks.
+   */
   async getProjectFile(
     projectId: number,
     userId: number,
     role: Role,
     fileType: FileType,
-  ) {
+  ): Promise<ProjectFileData> {
     const project = await this.findProjectFiles(projectId);
 
     project.checkAccess(userId, role);
     return project.getFile(fileType);
   }
 
+  /**
+   * Updates the project state with validation, optional cleanup, and realtime notifications.
+   */
   async updateState(
     projectId: number,
     userId: number,
     userRole: Role,
     newState: ProjectState,
-  ) {
+  ): Promise<ProjectDomain> {
     const project = await this.findProjectById(projectId);
     const oldState = project.state;
     project.checkStateEditAccess(userId, userRole, newState);

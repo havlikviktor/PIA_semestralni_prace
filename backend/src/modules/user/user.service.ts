@@ -50,8 +50,15 @@ export class UserService {
     return newUserDomain;
   }
 
-  async findOrCreateGoogleUser(profile: any) {
-    const { id, emails, displayName } = profile;
+  /**
+   * Finds an existing user by Google ID/email or creates a new customer user.
+   */
+  async findOrCreateGoogleUser(profile: unknown): Promise<UserDomain> {
+    const { id, emails, displayName } = profile as {
+      id: string;
+      emails: Array<{ value: string }>;
+      displayName: string;
+    };
     const email = emails[0].value;
     let user = await this.userRepository.findOne({
       where: [{ googleId: id }, { email }],

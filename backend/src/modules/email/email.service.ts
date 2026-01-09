@@ -6,6 +6,9 @@ import * as nodemailer from 'nodemailer';
 export class EmailService {
   private transporter: nodemailer.Transporter;
 
+  /**
+   * Initializes the mail transporter using configured host/port.
+   */
   constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       host: this.configService.getOrThrow<string>('MAIL_HOST') || 'localhost',
@@ -14,7 +17,13 @@ export class EmailService {
     });
   }
 
-  async sendProjectAssignedEmail(to: string, projectName: string) {
+  /**
+   * Notifies a translator about a newly assigned project.
+   */
+  async sendProjectAssignedEmail(
+    to: string,
+    projectName: string,
+  ): Promise<void> {
     await this.transporter.sendMail({
       from: '"PIA Translation System" <noreply@pia.com>',
       to,
@@ -24,7 +33,13 @@ export class EmailService {
     });
   }
 
-  async sendProjectCompletedEmail(to: string, projectName: string) {
+  /**
+   * Notifies a customer that their project is completed.
+   */
+  async sendProjectCompletedEmail(
+    to: string,
+    projectName: string,
+  ): Promise<void> {
     await this.transporter.sendMail({
       from: '"PIA Translation System" <noreply@pia.com>',
       to,
@@ -34,7 +49,13 @@ export class EmailService {
     });
   }
 
-  async sendProjectClosedNoTranslatorEmail(to: string, projectName: string) {
+  /**
+   * Notifies a customer that the project was closed due to no available translator.
+   */
+  async sendProjectClosedNoTranslatorEmail(
+    to: string,
+    projectName: string,
+  ): Promise<void> {
     await this.transporter.sendMail({
       from: '"PIA Translation System" <noreply@pia.com>',
       to,
@@ -44,7 +65,14 @@ export class EmailService {
     });
   }
 
-  async sendEmail(to: string | string[], subject: string, text: string) {
+  /**
+   * Sends a generic email message to one or more recipients.
+   */
+  async sendEmail(
+    to: string | string[],
+    subject: string,
+    text: string,
+  ): Promise<void> {
     const recipients = Array.isArray(to) ? to : [to];
 
     await Promise.all(

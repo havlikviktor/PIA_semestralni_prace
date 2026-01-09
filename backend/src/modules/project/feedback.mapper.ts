@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ProjectFeedbackEntity } from './entities/project-feedback.entity';
 import { FeedbackDomain } from '../../domain-entites/feedback.domain';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { ProjectFeedbackResponseDto } from './dto/project-feedback-response.dto';
 
 @Injectable()
 export class FeedbackMapper {
@@ -23,7 +24,7 @@ export class FeedbackMapper {
     return entity;
   }
 
-  toResponseDto(domain: FeedbackDomain) {
+  toResponseDto(domain: FeedbackDomain): ProjectFeedbackResponseDto {
     return {
       text: domain.text,
       createdAt: domain.createdAt,

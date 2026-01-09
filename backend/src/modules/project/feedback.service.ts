@@ -24,19 +24,25 @@ export class FeedbackService {
     private readonly feedbackMapper: FeedbackMapper,
   ) {}
 
-  async findFeedbackById(projectId: number) {
+  /**
+   * Finds feedback for a project (if present).
+   */
+  async findFeedbackById(projectId: number): Promise<FeedbackDomain | null> {
     const entity = await this.feedbackRepository.findOne({
       where: { projectId: projectId },
     });
     return entity ? this.feedbackMapper.toDomain(entity) : null;
   }
 
+  /**
+   * Adds feedback to a project (state + role constraints enforced in domain).
+   */
   async addFeedback(
     projectId: number,
     feedbackText: string,
     userId: number,
     userRole: Role,
-  ) {
+  ): Promise<FeedbackDomain> {
     const projectDomain = await this.projectService.findProjectById(projectId);
     const feedbackDomain = new FeedbackDomain({
       projectId: projectId,
@@ -69,7 +75,15 @@ export class FeedbackService {
     return this.feedbackMapper.toDomain(savedEntity);
   }
 
-  async deleteFeedback(projectId: number, options?: { emitUpdate?: boolean }) {
+  /**
+   * Deletes feedback for a project.
+   *
+   * When `emitUpdate` is not false, emits a project update (best-effort).
+   */
+  async deleteFeedback(
+    projectId: number,
+    options?: { emitUpdate?: boolean },
+  ): Promise<void> {
     await this.feedbackRepository.delete({ projectId });
 
     if (options?.emitUpdate === false) {

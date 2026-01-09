@@ -36,7 +36,15 @@ import {
   ApiBody,
   ApiBearerAuth,
   ApiQuery,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiParam,
+  ApiProduces,
 } from '@nestjs/swagger';
+import { ProjectListItemDto } from './dto/project-list-item.dto';
+import { ProjectDetailDto } from './dto/project-detail.dto';
+import { ProjectFeedbackResponseDto } from './dto/project-feedback-response.dto';
 
 @ApiTags('projects')
 @ApiBearerAuth()
@@ -58,8 +66,7 @@ export class ProjectController {
     description: 'Project creation data',
     type: CreateProjectDto,
   })
-  @ApiResponse({
-    status: 204,
+  @ApiNoContentResponse({
     description: 'The project has been successfully created.',
   })
   @ApiResponse({
@@ -80,7 +87,11 @@ export class ProjectController {
 
   @Get()
   @ApiOperation({ summary: 'Get all user projects' })
-  @ApiResponse({ status: 200, description: 'Return list of projects.' })
+  @ApiOkResponse({
+    description: 'Return list of projects.',
+    type: ProjectListItemDto,
+    isArray: true,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async findAll(@Request() req) {
     return this.projectService.findUserProjects(req.user.sub, req.user.role);
@@ -88,9 +99,16 @@ export class ProjectController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get project by ID' })
-  @ApiResponse({ status: 200, description: 'Return project details.' })
+  @ApiParam({ name: 'id', description: 'Project ID', example: 123 })
+  @ApiOkResponse({
+    description: 'Return project details.',
+    type: ProjectDetailDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. Not allowed to access project.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden. Not allowed to access project.',
+  })
   @ApiResponse({ status: 404, description: 'Project not found.' })
   async findOne(@Param('id') id: string, @Request() req) {
     return this.projectService.findProjectDetailForUser(
@@ -105,6 +123,7 @@ export class ProjectController {
   @UseInterceptors(FileInterceptor('translatedFile'))
   @ApiOperation({ summary: 'Upload translated file' })
   @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', description: 'Project ID', example: 123 })
   @ApiBody({
     schema: {
       type: 'object',
@@ -116,7 +135,10 @@ export class ProjectController {
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'File uploaded successfully.' })
+  @ApiCreatedResponse({
+    description: 'File uploaded successfully.',
+    type: ProjectDetailDto,
+  })
   @ApiResponse({ status: 400, description: 'Bad Request. Invalid file.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({
@@ -144,8 +166,13 @@ export class ProjectController {
 
   @Get(':id/file')
   @ApiOperation({ summary: 'Download project file' })
+  @ApiParam({ name: 'id', description: 'Project ID', example: 123 })
   @ApiQuery({ name: 'type', enum: FileType, required: false })
-  @ApiResponse({ status: 200, description: 'File downloaded successfully.' })
+  @ApiProduces('application/octet-stream')
+  @ApiOkResponse({
+    description: 'File downloaded successfully.',
+    schema: { type: 'string', format: 'binary' },
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({
     status: 403,
@@ -178,7 +205,11 @@ export class ProjectController {
 
   @Post(':id/feedback')
   @ApiOperation({ summary: 'Add feedback to project' })
-  @ApiResponse({ status: 201, description: 'Feedback added successfully.' })
+  @ApiParam({ name: 'id', description: 'Project ID', example: 123 })
+  @ApiCreatedResponse({
+    description: 'Feedback added successfully.',
+    type: ProjectFeedbackResponseDto,
+  })
   @ApiResponse({
     status: 400,
     description:
@@ -206,9 +237,10 @@ export class ProjectController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update project state' })
-  @ApiResponse({
-    status: 200,
+  @ApiParam({ name: 'id', description: 'Project ID', example: 123 })
+  @ApiOkResponse({
     description: 'Project state updated successfully.',
+    type: ProjectDetailDto,
   })
   @ApiResponse({
     status: 400,

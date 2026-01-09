@@ -6,6 +6,8 @@ import { UserMapper } from '../user/user.mapper';
 import { UserDomain } from '../../domain-entites/user.domain';
 import { ProjectState } from './entities/project.entity';
 import { FeedbackMapper } from './feedback.mapper';
+import { ProjectListItemDto } from './dto/project-list-item.dto';
+import { ProjectDetailDto } from './dto/project-detail.dto';
 
 @Injectable()
 export class ProjectMapper {
@@ -70,7 +72,7 @@ export class ProjectMapper {
     return domain;
   }
 
-  toDto(domain: ProjectDomain) {
+  toDto(domain: ProjectDomain): ProjectListItemDto {
     return {
       ProjectId: domain.ProjectId,
       languageCode: domain.languageCode,
@@ -84,7 +86,7 @@ export class ProjectMapper {
     };
   }
 
-  toDetailDto(domain: ProjectDomain) {
+  toDetailDto(domain: ProjectDomain): ProjectDetailDto {
     return {
       ProjectId: domain.ProjectId,
       languageCode: domain.languageCode,

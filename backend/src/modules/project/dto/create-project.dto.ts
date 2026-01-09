@@ -25,5 +25,5 @@ export class CreateProjectDto {
     format: 'binary',
     description: 'The original file to be translated',
   })
-  originalFile: any;
+  originalFile: unknown;
 }

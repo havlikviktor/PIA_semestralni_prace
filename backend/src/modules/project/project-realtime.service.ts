@@ -13,7 +13,10 @@ export class ProjectRealtimeService {
   private readonly logger = new Logger(ProjectRealtimeService.name);
   private server: Server | null = null;
 
-  bindServer(server: Server) {
+  /**
+   * Binds the Socket.IO server instance used for emitting realtime events.
+   */
+  bindServer(server: Server): void {
     this.server = server;
     this.logger.log('Project realtime server bound');
   }
@@ -22,7 +25,7 @@ export class ProjectRealtimeService {
     userIds: Array<number | undefined | null>,
     event: string,
     payload: unknown,
-  ) {
+  ): void {
     if (!this.server) return;
 
     const uniqueIds = [
@@ -33,17 +36,23 @@ export class ProjectRealtimeService {
     }
   }
 
-  private emitToRole(role: Role, event: string, payload: unknown) {
+  /**
+   * Emits an event to all users in the given role room.
+   */
+  private emitToRole(role: Role, event: string, payload: unknown): void {
     if (!this.server) return;
     this.server.to(`role_${role}`).emit(event, payload);
   }
 
+  /**
+   * Emits a "project created" event to relevant users and the project room.
+   */
   emitProjectCreated(params: {
     listItem: ProjectListItemDto;
     detail: ProjectDetailDto;
     customerId: number;
     translatorId?: number | null;
-  }) {
+  }): void {
     if (!this.server) return;
 
     this.emitToUserIds(
@@ -61,12 +70,15 @@ export class ProjectRealtimeService {
       .emit(ProjectSocketEvent.ProjectDetailUpdated, params.detail);
   }
 
+  /**
+   * Emits a "project updated" event to relevant users and the project room.
+   */
   emitProjectUpdated(params: {
     listItem: ProjectListItemDto;
     detail: ProjectDetailDto;
     customerId: number;
     translatorId?: number | null;
-  }) {
+  }): void {
     if (!this.server) return;
 
     this.emitToUserIds(
@@ -84,12 +96,15 @@ export class ProjectRealtimeService {
       .emit(ProjectSocketEvent.ProjectDetailUpdated, params.detail);
   }
 
+  /**
+   * Emits a "project state changed" event to relevant users and the project room.
+   */
   emitProjectStateChanged(params: {
     payload: ProjectStateChangedPayload;
     detail: ProjectDetailDto;
     customerId: number;
     translatorId?: number | null;
-  }) {
+  }): void {
     if (!this.server) return;
 
     this.emitToUserIds(
