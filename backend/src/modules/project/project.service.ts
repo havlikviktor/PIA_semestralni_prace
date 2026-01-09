@@ -21,6 +21,7 @@ import { UserDomain } from 'src/domain-entites/user.domain';
 import { ProjectMapper } from './project.mapper';
 import { ProjectDomain } from 'src/domain-entites/project.domain';
 import { FeedbackService } from './feedback.service';
+import { ProjectRealtimeService } from './project-realtime.service';
 
 @Injectable()
 export class ProjectService {
@@ -32,6 +33,7 @@ export class ProjectService {
     private readonly userService: UserService,
     private readonly emailService: EmailService,
     private readonly projectMapper: ProjectMapper,
+    private readonly realtime: ProjectRealtimeService,
   ) {}
 
   async create(createProjectDto: CreateProjectDto, file: Express.Multer.File) {
@@ -52,11 +54,32 @@ export class ProjectService {
     const savedProjectEntity = await this.projectRepository.save(projectEntity);
     const savedProjectDomain = this.projectMapper.toDomain(savedProjectEntity);
 
+    savedProjectDomain.customer = customerDomain;
+    savedProjectDomain.translator = assignedTranslatorDomain;
+    savedProjectDomain.hasTranslatedFile = false;
+
     await this.sendProjectNotifications(
       savedProjectDomain,
       assignedTranslatorDomain,
       customerDomain,
     );
+
+    const listItem = this.projectMapper.toDto(savedProjectDomain);
+    const detail = this.projectMapper.toDetailDto(savedProjectDomain);
+    this.realtime.emitProjectCreated({
+      listItem,
+      detail,
+      customerId: customerDomain.id,
+      translatorId: assignedTranslatorDomain?.id,
+    });
+  }
+
+  toDetailDto(domain: ProjectDomain) {
+    return this.projectMapper.toDetailDto(domain);
+  }
+
+  toListItemDto(domain: ProjectDomain) {
+    return this.projectMapper.toDto(domain);
   }
 
   private async assignTranslator(
@@ -114,7 +137,18 @@ export class ProjectService {
     await this.projectRepository.update(projectId, {
       translatedFile: file.buffer,
     });
-    return this.findProjectById(projectId);
+
+    const updated = await this.findProjectById(projectId);
+    const listItem = this.projectMapper.toDto(updated);
+    const detail = this.projectMapper.toDetailDto(updated);
+    this.realtime.emitProjectUpdated({
+      listItem,
+      detail,
+      customerId: updated.customer.id,
+      translatorId: updated.translator?.id,
+    });
+
+    return updated;
   }
 
   async hasTranslatedFile(projectId: number): Promise<boolean> {
@@ -214,6 +248,16 @@ export class ProjectService {
     return this.projectMapper.toDomain(projectEntity, hasFile);
   }
 
+  async findProjectDetailForUser(
+    projectId: number,
+    userId: number,
+    role: Role,
+  ) {
+    const domain = await this.findProjectById(projectId);
+    domain.checkAccess(userId, role);
+    return this.projectMapper.toDetailDto(domain);
+  }
+
   async findProjectFiles(projectId: number) {
     const projectEntity = await this.projectRepository.findOne({
       where: { ProjectId: projectId },
@@ -258,6 +302,7 @@ export class ProjectService {
     newState: ProjectState,
   ) {
     const project = await this.findProjectById(projectId);
+    const oldState = project.state;
     project.checkStateEditAccess(userId, userRole, newState);
 
     const plan = project.planStateUpdate(newState);
@@ -282,7 +327,9 @@ export class ProjectService {
     }
 
     if (plan.deleteFeedback) {
-      await this.feedbackService.deleteFeedback(projectId);
+      await this.feedbackService.deleteFeedback(projectId, {
+        emitUpdate: false,
+      });
     }
 
     const entityToSave = this.projectMapper.toEntity(project);
@@ -295,6 +342,21 @@ export class ProjectService {
       );
     }
 
-    return this.findProjectById(projectId);
+    const updated = await this.findProjectById(projectId);
+    const listItem = this.projectMapper.toDto(updated);
+    const detail = this.projectMapper.toDetailDto(updated);
+    this.realtime.emitProjectStateChanged({
+      payload: {
+        projectId: updated.ProjectId,
+        oldState,
+        newState: updated.state,
+        listItem,
+      },
+      detail,
+      customerId: updated.customer.id,
+      translatorId: updated.translator?.id,
+    });
+
+    return updated;
   }
 }

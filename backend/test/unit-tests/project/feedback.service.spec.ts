@@ -6,6 +6,7 @@ import { ProjectFeedbackEntity } from '../../../src/modules/project/entities/pro
 import { ProjectService } from '../../../src/modules/project/project.service';
 import { FeedbackMapper } from '../../../src/modules/project/feedback.mapper';
 import { FeedbackDomain } from '../../../src/domain-entites/feedback.domain';
+import { ProjectRealtimeService } from '../../../src/modules/project/project-realtime.service';
 
 describe('FeedbackService', () => {
   const feedbackRepository = {
@@ -15,12 +16,18 @@ describe('FeedbackService', () => {
 
   const projectService = {
     findProjectById: jest.fn(),
+    toListItemDto: jest.fn((x) => x),
+    toDetailDto: jest.fn((x) => x),
   } as unknown as ProjectService;
 
   const feedbackMapper = {
     toDomain: jest.fn((x) => x),
     toEntity: jest.fn((x) => x),
   } as unknown as FeedbackMapper;
+
+  const realtime = {
+    emitProjectUpdated: jest.fn(),
+  } as unknown as ProjectRealtimeService;
 
   let service: FeedbackService;
 
@@ -39,6 +46,7 @@ describe('FeedbackService', () => {
           useValue: feedbackRepository,
         },
         { provide: ProjectService, useValue: projectService },
+        { provide: ProjectRealtimeService, useValue: realtime },
         { provide: FeedbackMapper, useValue: feedbackMapper },
       ],
     }).compile();
@@ -55,7 +63,10 @@ describe('FeedbackService', () => {
   });
 
   it('addFeedback throws when feedback already exists', async () => {
-    (projectService.findProjectById as any).mockResolvedValue({} as any);
+    (projectService.findProjectById as any).mockResolvedValue({
+      customer: { id: 1 },
+      translator: null,
+    } as any);
     jest.spyOn(service, 'findFeedbackById').mockResolvedValue({} as any);
 
     await expect(
@@ -64,7 +75,10 @@ describe('FeedbackService', () => {
   });
 
   it('addFeedback saves when no existing feedback', async () => {
-    (projectService.findProjectById as any).mockResolvedValue({} as any);
+    (projectService.findProjectById as any).mockResolvedValue({
+      customer: { id: 1 },
+      translator: null,
+    } as any);
     jest.spyOn(service, 'findFeedbackById').mockResolvedValue(null);
 
     const res = await service.addFeedback(1, 'text', 1, 'customer' as any);

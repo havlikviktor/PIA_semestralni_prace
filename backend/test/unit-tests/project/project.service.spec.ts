@@ -9,6 +9,7 @@ import { EmailService } from '../../../src/modules/email/email.service';
 import { ProjectMapper } from '../../../src/modules/project/project.mapper';
 import { Role } from '../../../src/modules/user/entities/user.entity';
 import { FeedbackService } from '../../../src/modules/project/feedback.service';
+import { ProjectRealtimeService } from '../../../src/modules/project/project-realtime.service';
 
 describe('ProjectService', () => {
   const repo = {
@@ -40,7 +41,14 @@ describe('ProjectService', () => {
     toEntity: jest.fn((x) => x),
     toDomain: jest.fn((x) => x),
     toDto: jest.fn((x) => x),
+    toDetailDto: jest.fn((x) => x),
   } as unknown as ProjectMapper;
+
+  const realtime = {
+    emitProjectCreated: jest.fn(),
+    emitProjectUpdated: jest.fn(),
+    emitProjectStateChanged: jest.fn(),
+  } as unknown as ProjectRealtimeService;
 
   let service: ProjectService;
 
@@ -53,6 +61,7 @@ describe('ProjectService', () => {
       userService as any,
       emailService as any,
       projectMapper as any,
+      realtime as any,
     );
   });
 
@@ -170,7 +179,9 @@ describe('ProjectService', () => {
       1,
       expect.objectContaining({ ProjectId: 1, state: ProjectState.COMPLETED }),
     );
-    expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1);
+    expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1, {
+      emitUpdate: false,
+    });
     expect(emailService.sendProjectCompletedEmail).toHaveBeenCalledWith(
       'cust@x',
       'file',
@@ -222,7 +233,9 @@ describe('ProjectService', () => {
         translator: { id: 55 },
       }),
     );
-    expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1);
+    expect(feedbackService.deleteFeedback).toHaveBeenCalledWith(1, {
+      emitUpdate: false,
+    });
     expect(emailService.sendProjectCompletedEmail).not.toHaveBeenCalled();
   });
 

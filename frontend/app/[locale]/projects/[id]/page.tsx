@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import LoginRedirecter from '@/components/LoginRedirecter';
-import { getServerIp } from '@/utils/getServerIp';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { ProjectState } from '@/constants/projectState';
 import { mapStateToEnum } from '@/utils/StateMapper';
@@ -24,9 +23,12 @@ import AdminActions from '@/components/project-details/AdminActions';
 import ProjectInfo from '@/components/project-details/ProjectInfo';
 import UserInfo from '@/components/project-details/UserInfo';
 import AdminEmailPanel from '@/components/project-details/AdminEmailPanel';
+import { useProjectsSocket } from '@/hooks/useProjectsSocket';
+import { getServerIp } from '@/utils/getServerIp';
+import type { ProjectDetail } from '@/constants/projectSocketEvents';
 
 export default function ProjectPage() {
-  const { isLoading, user, missingCredentials } = useRequireAuth();
+  const { isLoading, user, token, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const translateState = useStateTranslation();
   const params = useParams();
@@ -37,6 +39,14 @@ export default function ProjectPage() {
   const [error, setError] = useState('');
   const serverIp = getServerIp();
   const userRole = user ? mapRoleToEnum(user.role) : undefined;
+  const projectsSocket = useProjectsSocket(token);
+  const {
+    requestProject,
+    subscribeProject,
+    unsubscribeProject,
+    onDetailUpdated,
+    updateProjectState,
+  } = projectsSocket;
   const [alert, setAlert] = useState<{
     title: string;
     text: string;
@@ -47,63 +57,107 @@ export default function ProjectPage() {
     show: false,
   });
 
-  useEffect(() => {
-    if (!id) return;
-
-    const fetchProject = async () => {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 5000);
-      try {
-        const data = await authFetch(`${serverIp}/projects/${id}`, {
-          signal: controller.signal,
-        });
-        setProject(data);
-      } catch (err: any) {
-        if (err.message !== 'Unauthorized') {
-          console.error(err);
-          setError(t('loadError'));
+  const toProject = (detail: ProjectDetail): Project => {
+    const customer = detail.customer
+      ? {
+          id: detail.customer.id,
+          name: detail.customer.name,
+          email: detail.customer.email,
+          role: Role.CUSTOMER,
+          isNewUser: false,
         }
+      : ({ id: 0, name: '', email: '', role: Role.CUSTOMER, isNewUser: false } as const);
+
+    const translator = detail.translator
+      ? {
+          id: detail.translator.id,
+          name: detail.translator.name,
+          email: detail.translator.email,
+          role: Role.TRANSLATOR,
+          isNewUser: false,
+        }
+      : undefined;
+
+    return {
+      ProjectId: detail.ProjectId,
+      fileName: detail.fileName,
+      languageCode: detail.languageCode,
+      state: detail.state,
+      createdAt: detail.createdAt,
+      customer,
+      translator,
+      feedback: detail.feedback ?? undefined,
+      hasTranslatedFile: Boolean(detail.hasTranslatedFile),
+    };
+  };
+
+  const isUnauthorizedError = (err: unknown) =>
+    err instanceof Error && err.message === 'Unauthorized';
+
+  useEffect(() => {
+    if (!id || !token) return;
+
+    const projectId = Number(id);
+    if (!projectId || Number.isNaN(projectId)) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        await subscribeProject(projectId);
+        const data = await requestProject(projectId);
+        if (cancelled) return;
+        setProject(toProject(data));
+      } catch (err: unknown) {
+        if (cancelled) return;
+        console.error(err);
+        setError(t('loadError'));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchProject();
-  }, [id, t, serverIp, authFetch]);
+    const offDetail = onDetailUpdated((updated) => {
+      if (updated?.ProjectId === projectId) {
+        setProject(toProject(updated));
+      }
+    });
 
-  const handleUpdateState = async (newState: ProjectState) => {
+    load();
+
+    return () => {
+      cancelled = true;
+      offDetail?.();
+      unsubscribeProject(projectId).catch(() => undefined);
+    };
+  }, [id, token, t, requestProject, subscribeProject, unsubscribeProject, onDetailUpdated]);
+
+  const handleUpdateState = (newState: ProjectState) => {
     if (!project) return;
-    try {
-      const updatedProject = await authFetch(`${serverIp}/projects/${project.ProjectId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ state: newState }),
-      });
 
-      setProject(updatedProject);
-      setAlert({
-        title: t('sendSuccess'),
-        text: t('updateSuccess') + ` ${translateState(newState)}`,
-        show: true,
-      });
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    updateProjectState(project.ProjectId, newState)
+      .then(() => {
+        setAlert({
+          title: t('sendSuccess'),
+          text: t('updateSuccess') + ` ${translateState(newState)}`,
+          show: true,
+        });
+      })
+      .catch((err: unknown) => {
+        if (isUnauthorizedError(err)) return;
         console.error(err);
         setAlert({
           title: t('error'),
           text: t('updateError'),
           show: true,
         });
-      }
-    }
+      });
   };
 
   const handleSubmitFeedback = async (feedbackText: string) => {
     if (!project) return;
     try {
-      const newFeedback = await authFetch(`${serverIp}/projects/${project.ProjectId}/feedback`, {
+      await authFetch(`${serverIp}/projects/${project.ProjectId}/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,14 +165,14 @@ export default function ProjectPage() {
         body: JSON.stringify({ text: feedbackText }),
       });
 
-      setProject({ ...project, feedback: newFeedback });
+      // UI updates come from WebSocket `projects:detailUpdated`.
       setAlert({
         title: t('sendSuccess'),
         text: t('feedbackSuccess'),
         show: true,
       });
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    } catch (err: unknown) {
+      if (!isUnauthorizedError(err)) {
         console.error(err);
         setAlert({
           title: t('error'),
@@ -136,19 +190,19 @@ export default function ProjectPage() {
     formData.append('translatedFile', file);
 
     try {
-      const updatedProject = await authFetch(`${serverIp}/projects/${project.ProjectId}/file`, {
+      await authFetch(`${serverIp}/projects/${project.ProjectId}/file`, {
         method: 'POST',
         body: formData,
       });
 
-      setProject(updatedProject);
+      // UI updates come from WebSocket `projects:detailUpdated`.
       setAlert({
         title: t('sendSuccess'),
         text: t('uploadSuccess'),
         show: true,
       });
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    } catch (err: unknown) {
+      if (!isUnauthorizedError(err)) {
         console.error(err);
         setAlert({ title: t('error'), text: t('uploadError'), show: true });
         throw err;
@@ -160,8 +214,8 @@ export default function ProjectPage() {
     if (!project) return;
     try {
       await downloadProjectFile(serverIp, project.ProjectId, type, authFetch);
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    } catch (err: unknown) {
+      if (!isUnauthorizedError(err)) {
         console.error(err);
         setAlert({
           title: t('error'),
@@ -180,12 +234,12 @@ export default function ProjectPage() {
 
   return (
     <div className=" flex items-center justify-center bg-black">
-        <Alert
-          title={alert.title}
-          text={alert.text}
-          show={alert.show}
-          onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
-        />
+      <Alert
+        title={alert.title}
+        text={alert.text}
+        show={alert.show}
+        onClose={() => setAlert((prev) => ({ ...prev, show: false }))}
+      />
       <div className="p-6 pt-10 text-black w-full max-w-3xl">
         <h1 className="text-2xl text-gray-200 font-bold mb-4">{t('title')}</h1>
         <div className="bg-white shadow rounded-lg p-6 space-y-6">

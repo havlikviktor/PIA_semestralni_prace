@@ -29,10 +29,14 @@ export default function CreateProject() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    if (!user) return;
-
     e.preventDefault();
     setError('');
+
+    if (!user?.id) {
+      setError(t('error'));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

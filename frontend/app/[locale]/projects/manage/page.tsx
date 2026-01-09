@@ -4,48 +4,69 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useRouter } from '../../../../i18n/navigation';
 import { useStateTranslation } from '@/hooks/useStateTranslation';
-import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoginRedirecter from '@/components/LoginRedirecter';
-import { getServerIp } from '@/utils/getServerIp';
-import { Project } from '@/types/project';
 import { ProjectState } from '@/constants/projectState';
 import { Role } from '@/constants/role';
 import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useProjectsSocket } from '@/hooks/useProjectsSocket';
+import { ProjectListItem } from '@/constants/projectSocketEvents';
 
 export default function ManageProjects() {
   const t = useTranslations('Projects');
   const translateState = useStateTranslation();
-  const { authFetch, unauthorized } = useAuth();
-  const { missingCredentials, user } = useRequireAuth();
+  const { missingCredentials, user, token } = useRequireAuth();
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterState, setFilterState] = useState<string>('ALL');
-  const serverIp = getServerIp();
+  const projectsSocket = useProjectsSocket(token);
+
+  const { requestList, onListItemCreated, onListItemUpdated, onStateChanged } = projectsSocket;
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    if (!user || !token) return;
+    if (user.role !== Role.ADMINISTRATOR) return;
+
+    let cancelled = false;
+
+    const load = async () => {
       try {
-        const data = await authFetch(`${serverIp}/projects`);
-        if (!data) return;
+        const data = await requestList();
+        if (cancelled) return;
         setProjects(data);
-        setFilteredProjects(data);
-      } catch (err: any) {
-        if (err.message !== 'Unauthorized') {
-          console.error(err);
-        }
+      } catch (err: unknown) {
+        if (cancelled) return;
+        console.error(err);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
-    if (user && user.role === Role.ADMINISTRATOR) {
-      fetchProjects();
-    }
-  }, [authFetch, user]);
+    const upsert = (incoming: ProjectListItem) => {
+      setProjects((prev) => {
+        const idx = prev.findIndex((p) => p.ProjectId === incoming.ProjectId);
+        if (idx === -1) return [incoming, ...prev];
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...incoming };
+        return next;
+      });
+    };
+
+    load();
+    const offCreated = onListItemCreated(upsert);
+    const offUpdated = onListItemUpdated(upsert);
+    const offState = onStateChanged((p) => upsert(p.listItem));
+
+    return () => {
+      cancelled = true;
+      offCreated?.();
+      offUpdated?.();
+      offState?.();
+    };
+  }, [user, token, requestList, onListItemCreated, onListItemUpdated, onStateChanged]);
 
   useEffect(() => {
     if (filterState === 'ALL') {
@@ -55,7 +76,7 @@ export default function ManageProjects() {
     }
   }, [filterState, projects]);
 
-  if (missingCredentials || unauthorized) {
+  if (missingCredentials) {
     return <LoginRedirecter />;
   }
 

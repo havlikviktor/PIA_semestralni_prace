@@ -89,11 +89,15 @@ export class ProjectController {
   @Get(':id')
   @ApiOperation({ summary: 'Get project by ID' })
   @ApiResponse({ status: 200, description: 'Return project details.' })
-  @ApiResponse({ status: 404, description: 'Project not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async findOne(@Param('id') id: string) {
-    const projectDomain = await this.projectService.findProjectById(+id);
-    return this.projectMapper.toDetailDto(projectDomain);
+  @ApiResponse({ status: 403, description: 'Forbidden. Not allowed to access project.' })
+  @ApiResponse({ status: 404, description: 'Project not found.' })
+  async findOne(@Param('id') id: string, @Request() req) {
+    return this.projectService.findProjectDetailForUser(
+      +id,
+      req.user.sub,
+      req.user.role,
+    );
   }
 
   @Post(':id/file')

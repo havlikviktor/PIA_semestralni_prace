@@ -8,40 +8,71 @@ import { useRequireAuth } from '../../../hooks/useRequireAuth';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoginRedirecter from '@/components/LoginRedirecter';
-import { getServerIp } from '@/utils/getServerIp';
 import { FileState } from '@/constants/fileState';
-import { Project } from '@/types/project';
 import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
 import { downloadProjectFile } from '@/utils/fileDownloader';
+import { useProjectsSocket } from '@/hooks/useProjectsSocket';
+import { ProjectListItem } from '@/constants/projectSocketEvents';
+import { getServerIp } from '@/utils/getServerIp';
+
+function isUnauthorizedError(err: unknown) {
+  return err instanceof Error && err.message === 'Unauthorized';
+}
 
 export default function Projects() {
   const t = useTranslations('Projects');
   const translateState = useStateTranslation();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
-  const { missingCredentials } = useRequireAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { missingCredentials, token } = useRequireAuth();
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const serverIp = getServerIp();
+  const projectsSocket = useProjectsSocket(token);
+
+  const { requestList, onListItemCreated, onListItemUpdated, onStateChanged } = projectsSocket;
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    if (!token) return;
+
+    let cancelled = false;
+    const load = async () => {
       try {
-        const data = await authFetch(`${serverIp}/projects`);
+        const data = await requestList();
+        if (cancelled) return;
         setProjects(data);
-      } catch (err: any) {
-        if (err.message !== 'Unauthorized') {
-          console.error(err);
-          setError(t('failedToLoad'));
-        }
+      } catch (err: unknown) {
+        if (cancelled) return;
+        console.error(err);
+        setError(t('failedToLoad'));
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
-    fetchProjects();
-  }, [t, authFetch]);
+    const upsert = (incoming: ProjectListItem) => {
+      setProjects((prev) => {
+        const idx = prev.findIndex((p) => p.ProjectId === incoming.ProjectId);
+        if (idx === -1) return [incoming, ...prev];
+        const next = [...prev];
+        next[idx] = { ...next[idx], ...incoming };
+        return next;
+      });
+    };
+
+    load();
+    const offCreated = onListItemCreated(upsert);
+    const offUpdated = onListItemUpdated(upsert);
+    const offState = onStateChanged((p) => upsert(p.listItem));
+
+    return () => {
+      cancelled = true;
+      offCreated?.();
+      offUpdated?.();
+      offState?.();
+    };
+  }, [t, token, requestList, onListItemCreated, onListItemUpdated, onStateChanged]);
 
   if (missingCredentials || unauthorized) {
     return <LoginRedirecter />;
@@ -56,8 +87,8 @@ export default function Projects() {
 
     try {
       await downloadProjectFile(serverIp, projectId, type, authFetch);
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    } catch (err: unknown) {
+      if (!isUnauthorizedError(err)) {
         console.error(err);
         setError(t('downloadError'));
       }

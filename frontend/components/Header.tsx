@@ -23,7 +23,11 @@ export default function Header() {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        setUser(JSON.parse(userStr));
+        const parsed = JSON.parse(userStr);
+        const normalized =
+          parsed && typeof parsed === 'object' && 'user' in parsed ? (parsed as any).user : parsed;
+
+        setUser(normalized);
       } catch (e) {
         console.error('Failed to parse user data', e);
         setUser(null);

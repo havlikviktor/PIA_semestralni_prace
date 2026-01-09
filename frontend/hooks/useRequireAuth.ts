@@ -1,6 +1,21 @@
 import { useEffect, useState } from 'react';
 import { UserInfo } from '@/types/user';
 
+function normalizeStoredUser(raw: unknown): UserInfo | null {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const maybeWrapped = raw as { user?: unknown };
+  const candidate = maybeWrapped.user && typeof maybeWrapped.user === 'object' ? maybeWrapped.user : raw;
+  const u = candidate as Partial<UserInfo>;
+
+  if (typeof u.id !== 'number') return null;
+  if (typeof u.name !== 'string') return null;
+  if (typeof u.role !== 'string') return null;
+  if (typeof u.email !== 'string') return null;
+
+  return u as UserInfo;
+}
+
 export const useRequireAuth = () => {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -22,7 +37,13 @@ export const useRequireAuth = () => {
     }
 
     try {
-      const parsedUser = JSON.parse(storedUser);
+      const parsedRaw = JSON.parse(storedUser);
+      const parsedUser = normalizeStoredUser(parsedRaw);
+
+      if (!parsedUser) {
+        throw new Error('Invalid user shape');
+      }
+
       setUser(parsedUser);
       setToken(storedToken);
       setMissingCredentials(false);

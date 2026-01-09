@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '../../../../i18n/navigation';
 import { mapRoleToEnum } from '../../../../utils/RoleMapper';
 import { mapStateToEnum } from '@/utils/StateMapper';
@@ -13,67 +13,102 @@ import LoginRedirecter from '@/components/LoginRedirecter';
 import { ProjectState } from '@/constants/projectState';
 import { FileState } from '@/constants/fileState';
 import { Role } from '@/constants/role';
-import { Project } from '@/types/project';
 import { getServerIp } from '@/utils/getServerIp';
 import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
 import { downloadProjectFile } from '@/utils/fileDownloader';
+import { useProjectsSocket } from '@/hooks/useProjectsSocket';
+import { ProjectListItem } from '@/constants/projectSocketEvents';
+
+function isUnauthorizedError(err: unknown) {
+  return err instanceof Error && err.message === 'Unauthorized';
+}
 
 export default function ActiveProjects() {
   const t = useTranslations('Projects');
   const translateState = useStateTranslation();
-  const { user, missingCredentials } = useRequireAuth();
+  const { user, token, missingCredentials } = useRequireAuth();
   const { authFetch, unauthorized } = useAuth();
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const allProjectsRef = useRef<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const serverIp = getServerIp();
+  const projectsSocket = useProjectsSocket(token);
+
+  const { requestList, onListItemCreated, onListItemUpdated, onStateChanged } = projectsSocket;
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const data: Project[] = await authFetch(`${serverIp}/projects`);
-        if (!data) return;
-        const userRole = user ? mapRoleToEnum(user.role) : null;
+    if (!user || !token) return;
 
-        const filteredProjects = data.filter((project) => {
-          const projectState = mapStateToEnum(project.state);
+    let cancelled = false;
+    const userRole = user ? mapRoleToEnum(user.role) : null;
 
-          if (userRole === Role.CUSTOMER || userRole === Role.ADMINISTRATOR) {
-            return (
-              projectState === ProjectState.COMPLETED ||
-              ((projectState === ProjectState.APPROVED || projectState === ProjectState.REJECTED) &&
-                !project.feedback)
-            );
-          } else if (userRole === Role.TRANSLATOR) {
-            return projectState === ProjectState.ASSIGNED;
-          }
-          return false;
-        });
+    const recompute = (list: ProjectListItem[]) => {
+      const filtered = list.filter((project) => {
+        const projectState = mapStateToEnum(project.state);
 
-        setProjects(filteredProjects);
-      } catch (err: any) {
-        if (err.message !== 'Unauthorized') {
-          console.error(err);
-          setError(t('failedToLoad'));
+        if (userRole === Role.CUSTOMER || userRole === Role.ADMINISTRATOR) {
+          return (
+            projectState === ProjectState.COMPLETED ||
+            ((projectState === ProjectState.APPROVED || projectState === ProjectState.REJECTED) &&
+              !project.feedback)
+          );
+        } else if (userRole === Role.TRANSLATOR) {
+          return projectState === ProjectState.ASSIGNED;
         }
+        return false;
+      });
+
+      setProjects(filtered);
+    };
+
+    const load = async () => {
+      try {
+        const data = await requestList();
+        if (cancelled) return;
+        allProjectsRef.current = data;
+        recompute(data);
+      } catch (err: unknown) {
+        if (cancelled) return;
+        console.error(err);
+        setError(t('failedToLoad'));
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
-    if (user) {
-      fetchProjects();
-    }
-  }, [user, t, serverIp, authFetch]);
+    const upsert = (incoming: ProjectListItem) => {
+      const prev = allProjectsRef.current;
+      const idx = prev.findIndex((p) => p.ProjectId === incoming.ProjectId);
+      const next =
+        idx === -1
+          ? [incoming, ...prev]
+          : prev.map((p) => (p.ProjectId === incoming.ProjectId ? { ...p, ...incoming } : p));
+      allProjectsRef.current = next;
+      recompute(next);
+    };
+
+    load();
+    const offCreated = onListItemCreated(upsert);
+    const offUpdated = onListItemUpdated(upsert);
+    const offState = onStateChanged((p) => upsert(p.listItem));
+
+    return () => {
+      cancelled = true;
+      offCreated?.();
+      offUpdated?.();
+      offState?.();
+    };
+  }, [user, token, t, requestList, onListItemCreated, onListItemUpdated, onStateChanged]);
 
   const handleDownload = async (e: React.MouseEvent, projectId: number, type: FileState) => {
     e.stopPropagation();
 
     try {
       await downloadProjectFile(serverIp, projectId, type, authFetch);
-    } catch (err: any) {
-      if (err.message !== 'Unauthorized') {
+    } catch (err: unknown) {
+      if (!isUnauthorizedError(err)) {
         console.error(err);
         setError(t('downloadError'));
       }
@@ -142,8 +177,8 @@ export default function ActiveProjects() {
                                     projectState === ProjectState.APPROVED
                                       ? 'text-purple-300'
                                       : projectState === ProjectState.REJECTED
-                                        ? 'text-rose-300'
-                                        : 'text-gray-300'
+                                      ? 'text-rose-300'
+                                      : 'text-gray-300'
                                   }`}
                                 >
                                   ({t('missingFeedback')})

@@ -66,9 +66,10 @@ function RoleSetupContent() {
           localStorage.setItem('accessToken', updatedUser.accessToken);
         }
 
-        // Store user without token field
-        const { accessToken, ...userToStore } = updatedUser;
-        localStorage.setItem('user', JSON.stringify(userToStore));
+        // Store user without token field (backend may return either user fields directly or { user, accessToken })
+        const userToStore = updatedUser.user ? updatedUser.user : updatedUser;
+        const { accessToken, ...userWithoutToken } = userToStore;
+        localStorage.setItem('user', JSON.stringify(userWithoutToken));
       }
 
       router.push('/dashboard');
