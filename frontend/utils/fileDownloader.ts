@@ -1,7 +1,7 @@
 import { FileState } from '@/constants/fileState';
 
 export const downloadProjectFile = async (
-  serverIp: string,
+  serverUrl: string,
   projectId: number,
   type: FileState,
   authFetch: (
@@ -11,7 +11,7 @@ export const downloadProjectFile = async (
   ) => Promise<any>,
 ): Promise<void> => {
   const { blob, headers } = await authFetch(
-    `${serverIp}/projects/${projectId}/file?type=${type}`,
+    `${serverUrl}/projects/${projectId}/file?type=${type}`,
     {},
     'blob',
   );

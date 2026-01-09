@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from './useAuth';
 import { useTranslations } from 'next-intl';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 
 export const useTicketLogin = () => {
   const t = useTranslations('Auth');
@@ -11,7 +11,7 @@ export const useTicketLogin = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const ticketProcessed = useRef(false);
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
 
   useEffect(() => {
     const ticket = searchParams.get('ticket');
@@ -27,7 +27,7 @@ export const useTicketLogin = () => {
 
     const exchangeTicket = async () => {
       try {
-        const res = await fetch(`${serverIp}/auth/ticket`, {
+        const res = await fetch(`${serverUrl}/auth/ticket`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ticket }),

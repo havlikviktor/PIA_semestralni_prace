@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import { Project } from '@/types/project';
 import { Role } from '@/constants/role';
 import { useAuth } from '@/hooks/useAuth';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 import Alert from '@/components/Alert';
 
 interface AdminEmailPanelProps {
@@ -14,7 +14,7 @@ interface AdminEmailPanelProps {
 export default function AdminEmailPanel({ userRole, project }: AdminEmailPanelProps) {
   const t = useTranslations('ProjectDetails');
   const { authFetch } = useAuth();
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
 
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -64,7 +64,7 @@ export default function AdminEmailPanel({ userRole, project }: AdminEmailPanelPr
 
     setLoading(true);
     try {
-      await authFetch(`${serverIp}/email/send`, {
+      await authFetch(`${serverUrl}/email/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTranslations } from 'next-intl';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 
 function AuthContent() {
   const t = useTranslations('Auth');
@@ -13,7 +13,7 @@ function AuthContent() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const { handleLoginSuccess } = useAuth();
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +27,7 @@ function AuthContent() {
     }
 
     try {
-      const res = await fetch(`${serverIp}/auth/${endpoint}`, {
+      const res = await fetch(`${serverUrl}/auth/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -118,7 +118,7 @@ function AuthContent() {
 
           <div className="mt-6">
             <a
-              href={`${serverIp}/auth/google`}
+              href={`${serverUrl}/auth/google`}
               className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg

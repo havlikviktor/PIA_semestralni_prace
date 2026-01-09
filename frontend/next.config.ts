@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: isProd,
   experimental: {
     // @ts-ignore
-    allowedDevOrigins: [`http://${process.env.NEXT_PUBLIC_SERVER_IP}:${process.env.BACKEND_PORT}`],
+    allowedDevOrigins: [`http://${process.env.NEXT_PUBLIC_SERVER_URL}:${process.env.BACKEND_PORT}`],
   },
 };
 

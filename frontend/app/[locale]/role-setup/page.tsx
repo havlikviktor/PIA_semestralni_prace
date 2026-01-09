@@ -7,7 +7,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useRequireAuth } from '../../../hooks/useRequireAuth';
 import { useAuth } from '@/hooks/useAuth';
 import LoginRedirecter from '@/components/LoginRedirecter';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 import { Role } from '@/constants/role';
 
 function RoleSetupContent() {
@@ -22,7 +22,7 @@ function RoleSetupContent() {
   const [selectedLanguages, setSelectedLanguages] = useState<Language[]>([]);
   const [error, setError] = useState('');
   const [userId, setUserId] = useState<number | null>(null);
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
 
   useEffect(() => {
     if (user) {
@@ -53,7 +53,7 @@ function RoleSetupContent() {
     }
 
     try {
-      const updatedUser = await authFetch(`${serverIp}/user/${userId}`, {
+      const updatedUser = await authFetch(`${serverUrl}/user/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

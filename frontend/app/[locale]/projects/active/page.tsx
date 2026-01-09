@@ -13,7 +13,7 @@ import LoginRedirecter from '@/components/LoginRedirecter';
 import { ProjectState } from '@/constants/projectState';
 import { FileState } from '@/constants/fileState';
 import { Role } from '@/constants/role';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
 import { downloadProjectFile } from '@/utils/fileDownloader';
 import { useProjectsSocket } from '@/hooks/useProjectsSocket';
@@ -33,7 +33,7 @@ export default function ActiveProjects() {
   const allProjectsRef = useRef<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
   const projectsSocket = useProjectsSocket(token);
 
   const { requestList, onListItemCreated, onListItemUpdated, onStateChanged } = projectsSocket;
@@ -106,7 +106,7 @@ export default function ActiveProjects() {
     e.stopPropagation();
 
     try {
-      await downloadProjectFile(serverIp, projectId, type, authFetch);
+      await downloadProjectFile(serverUrl, projectId, type, authFetch);
     } catch (err: unknown) {
       if (!isUnauthorizedError(err)) {
         console.error(err);

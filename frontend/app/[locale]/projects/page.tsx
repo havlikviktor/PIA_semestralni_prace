@@ -13,7 +13,7 @@ import { ProjectStyleMapper } from '@/utils/ProjectStyleMapper';
 import { downloadProjectFile } from '@/utils/fileDownloader';
 import { useProjectsSocket } from '@/hooks/useProjectsSocket';
 import { ProjectListItem } from '@/constants/projectSocketEvents';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 
 function isUnauthorizedError(err: unknown) {
   return err instanceof Error && err.message === 'Unauthorized';
@@ -28,7 +28,7 @@ export default function Projects() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
   const projectsSocket = useProjectsSocket(token);
 
   const { requestList, onListItemCreated, onListItemUpdated, onStateChanged } = projectsSocket;
@@ -86,7 +86,7 @@ export default function Projects() {
     e.stopPropagation();
 
     try {
-      await downloadProjectFile(serverIp, projectId, type, authFetch);
+      await downloadProjectFile(serverUrl, projectId, type, authFetch);
     } catch (err: unknown) {
       if (!isUnauthorizedError(err)) {
         console.error(err);

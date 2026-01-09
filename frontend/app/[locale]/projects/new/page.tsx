@@ -8,7 +8,7 @@ import { useRequireAuth } from '../../../../hooks/useRequireAuth';
 import { useAuth } from '@/hooks/useAuth';
 import LoginRedirecter from '@/components/LoginRedirecter';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 
 export default function CreateProject() {
   const t = useTranslations('CreateProject');
@@ -20,7 +20,7 @@ export default function CreateProject() {
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -51,7 +51,7 @@ export default function CreateProject() {
       formData.append('languageCode', selectedLanguage);
       formData.append('customerId', user.id.toString());
 
-      await authFetch(`${serverIp}/projects`, {
+      await authFetch(`${serverUrl}/projects`, {
         method: 'POST',
         body: formData,
       });

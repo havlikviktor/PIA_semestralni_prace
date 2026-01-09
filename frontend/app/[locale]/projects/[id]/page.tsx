@@ -24,7 +24,7 @@ import ProjectInfo from '@/components/project-details/ProjectInfo';
 import UserInfo from '@/components/project-details/UserInfo';
 import AdminEmailPanel from '@/components/project-details/AdminEmailPanel';
 import { useProjectsSocket } from '@/hooks/useProjectsSocket';
-import { getServerIp } from '@/utils/getServerIp';
+import { getServerUrl } from '@/utils/getServerURL';
 import type { ProjectDetail } from '@/constants/projectSocketEvents';
 
 export default function ProjectPage() {
@@ -37,7 +37,7 @@ export default function ProjectPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const serverIp = getServerIp();
+  const serverUrl = getServerUrl();
   const userRole = user ? mapRoleToEnum(user.role) : undefined;
   const projectsSocket = useProjectsSocket(token);
   const {
@@ -157,7 +157,7 @@ export default function ProjectPage() {
   const handleSubmitFeedback = async (feedbackText: string) => {
     if (!project) return;
     try {
-      await authFetch(`${serverIp}/projects/${project.ProjectId}/feedback`, {
+      await authFetch(`${serverUrl}/projects/${project.ProjectId}/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export default function ProjectPage() {
     formData.append('translatedFile', file);
 
     try {
-      await authFetch(`${serverIp}/projects/${project.ProjectId}/file`, {
+      await authFetch(`${serverUrl}/projects/${project.ProjectId}/file`, {
         method: 'POST',
         body: formData,
       });
@@ -213,7 +213,7 @@ export default function ProjectPage() {
   const handleDownload = async (type: FileState) => {
     if (!project) return;
     try {
-      await downloadProjectFile(serverIp, project.ProjectId, type, authFetch);
+      await downloadProjectFile(serverUrl, project.ProjectId, type, authFetch);
     } catch (err: unknown) {
       if (!isUnauthorizedError(err)) {
         console.error(err);
@@ -289,7 +289,11 @@ export default function ProjectPage() {
             onUpdateState={handleUpdateState}
           />
 
-          <FeedbackSection userRole={userRole} project={project} onSubmitFeedback={handleSubmitFeedback} />
+          <FeedbackSection
+            userRole={userRole}
+            project={project}
+            onSubmitFeedback={handleSubmitFeedback}
+          />
         </div>
       </div>
     </div>

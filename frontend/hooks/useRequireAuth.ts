@@ -37,13 +37,7 @@ export const useRequireAuth = () => {
     }
 
     try {
-      const parsedRaw = JSON.parse(storedUser);
-      const parsedUser = normalizeStoredUser(parsedRaw);
-
-      if (!parsedUser) {
-        throw new Error('Invalid user shape');
-      }
-
+      const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       setToken(storedToken);
       setMissingCredentials(false);
